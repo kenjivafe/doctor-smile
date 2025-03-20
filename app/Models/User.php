@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -70,5 +72,21 @@ class User extends Authenticatable
     public function isPatient(): bool
     {
         return $this->role === 'patient';
+    }
+
+    /**
+     * Get the patient profile associated with the user.
+     */
+    public function patient(): HasOne
+    {
+        return $this->hasOne(Patient::class);
+    }
+
+    /**
+     * Get the appointments for the dentist user.
+     */
+    public function dentistAppointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class, 'dentist_id');
     }
 }

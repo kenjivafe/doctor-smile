@@ -1,3 +1,54 @@
+# Coding pattern preferences
+
+- Don't try to npm run dev or php artisan serve since I am using laravel herd to serve my projects
+- Always prefer simple solutions
+- Avoid duplication of code whenever possible, which means checking for other areas of the codebase that might already have similar code and functionality
+- Write code that takes into account the different environments: dev, test, and prod
+- You are careful to only make changes that are requested or you are confident are well understood and related to the change being requested
+- When fixing an issue or bug, do not introduce a new pattern or technology without first exhausting all options for the existing implementation. And if you finally do this, make sure to remove the old implementation afterwards so we don’t have duplicate logic.
+- Keep the codebase very clean and organized
+- Avoid writing scripts in files if possible, especially if the script is likely only to be run once
+- Avoid having files over 200–300 lines of code. Refactor at that point.
+- Mocking data is only needed for tests, never mock data for dev or prod
+- Never add stubbing or fake data patterns to code that affects the dev or prod environments
+- Never overwrite my .env file without first asking and confirming
+
+# Coding workflow preferences
+
+- Focus on areas of code relevant to the task.
+- Do not touch code that is unrelated to the task.
+- Write thorough tests for all major functionality.
+- Avoid making major changes to the patterns and architecture of how a feature works, after it has shown to work well, unless explicitly structed.
+- Always think about what other methods and areas of code might be affected by code changes.
+- Update the todo.txt file after each change. Always check it.
+
+# Backend
+
+- Use Laravel 12 as the PHP framework with React Starter Kit.
+- Database: MySQL
+- Authentication: Basic Auth + Role-Based Access Control (Admin (backup account), Dentist, Patient)
+- Use WebSockets for real-time updates.
+
+# Frontend
+
+- Use React and use kebab-case for React component file names (e.g., user-card.tsx, not UserCard.tsx).
+- Prefer named exports for components.
+- UI Framework: ShadCN UI + Tailwind CSS.
+- Icons: Lucide React.
+- Ensure a mobile-friendly & responsive design.
+
+# Features & Integrations
+
+- Appointment Management
+- Patients select a date/time.
+- Dentists approve, suggest a new time, or reject.
+- Patients confirm or cancel the suggested time.
+- Payment is when the patient confirms.
+- Dentists manually set available slots.
+- Time management & reallocation support.
+
+# Specifications
+
 Doctor Smile – Dental Clinic Appointment System
 
 1. Overview

@@ -9,7 +9,12 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
+    resolve: (name) => {
+        // Convert the path to match the actual file location
+        // This handles the path transformation for kebab-case filenames
+        const pages = import.meta.glob('./pages/**/*.tsx');
+        return resolvePageComponent(`./pages/${name}.tsx`, pages);
+    },
     setup({ el, App, props }) {
         const root = createRoot(el);
 

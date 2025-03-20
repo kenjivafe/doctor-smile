@@ -132,7 +132,7 @@ export default function Welcome() {
                     </motion.div>
 
                     {/* Services Section */}
-                    <div id="services" className="mt-32 text-center">
+                    <div id="services" className="pt-20 mt-12 text-center scroll-mt-24">
                         <motion.h2
                             className="text-3xl font-bold tracking-tight sm:text-4xl text-foreground"
                             initial={{ opacity: 0 }}
@@ -338,7 +338,7 @@ export default function Welcome() {
                                                             <MapPin className="w-6 h-6 text-background dark:text-foreground" />
                                                         </div>
                                                         <div className="flex-1 ml-4 text-left">
-                                                            <p className="font-medium text-background dark:text-foreground">Doctor Smile Dental Clinic</p>
+                                                            <p className="font-medium text-background dark:text-foreground">Doctor Smile Dental Center</p>
                                                             <p className="text-background/80 dark:text-foreground/80">5 Legazpi Street, Ugac Norte, Tuguegarao City</p>
                                                         </div>
                                                     </div>

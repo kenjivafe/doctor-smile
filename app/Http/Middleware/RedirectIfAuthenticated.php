@@ -12,6 +12,8 @@ class RedirectIfAuthenticated
 {
     /**
      * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {
@@ -19,7 +21,18 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect()->route('dashboard');
+                // Get user role and redirect to appropriate dashboard
+                $user = Auth::guard($guard)->user();
+                
+                if ($user->role === 'admin') {
+                    return redirect()->route('admin.analytics');
+                } elseif ($user->role === 'dentist') {
+                    return redirect()->route('dentist.appointments');
+                } elseif ($user->role === 'patient') {
+                    return redirect()->route('dashboard');
+                }
+                
+                return redirect(RouteServiceProvider::HOME);
             }
         }
 
