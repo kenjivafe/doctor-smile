@@ -1,25 +1,29 @@
-import { Link } from '@inertiajs/react';
+import { Link, Head } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Bell, Stethoscope, CreditCard, CalendarCheck, Sparkles, Shield, Heart, Phone, Mail, MapPin, Facebook, Instagram } from 'lucide-react';
+import { Calendar, Clock, Bell, Stethoscope, CreditCard, CalendarCheck, Sparkles, Shield, Heart, Phone, Mail, MapPin } from 'lucide-react';
 
 export default function Welcome() {
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900">
+            <Head title="Home" />
             {/* Navigation */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="fixed top-0 right-0 left-0 z-50 border-b border-gray-200 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 dark:border-gray-800">
+                <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
                             <Link href="/">
-                                <span className="text-2xl font-bold text-foreground">
-                                    Doctor Smile
+                                <span className="text-2xl font-black text-primary">
+                                    {"DOCTOR "}
+                                </span>
+                                <span className="text-2xl font-black text-secondary">
+                                    SMILE
                                 </span>
                             </Link>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <Link href={route('login')}>
-                                <Button variant="ghost" className="hover:text-primary">Sign in</Button>
+                            <Link href={route('login')} className="px-2 text-sm font-semibold leading-6 transition-colors text-foreground hover:text-secondary">
+                                Sign in
                             </Link>
                             <Link href={route('register')}>
                                 <Button className="bg-primary hover:bg-primary/90">Get Started</Button>
@@ -31,10 +35,10 @@ export default function Welcome() {
 
             {/* Hero Section */}
             <div className="relative pt-32 pb-20 sm:pt-40">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="text-center">
                         <motion.h1
-                            className="text-4xl sm:text-6xl font-bold tracking-tight text-foreground"
+                            className="text-4xl font-bold tracking-tight sm:text-6xl text-foreground"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5 }}
@@ -42,7 +46,7 @@ export default function Welcome() {
                             Transform Your Smile Today
                         </motion.h1>
                         <motion.p
-                            className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto"
+                            className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.1 }}
@@ -51,7 +55,7 @@ export default function Welcome() {
                             Book appointments easily, manage your dental health, and get the smile you deserve.
                         </motion.p>
                         <motion.div
-                            className="mt-10 flex items-center justify-center gap-x-6"
+                            className="flex gap-x-6 justify-center items-center mt-10"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.2 }}
@@ -61,7 +65,7 @@ export default function Welcome() {
                                     Book Your Visit
                                 </Button>
                             </Link>
-                            <Link href="#services" className="text-sm font-semibold leading-6 text-foreground hover:text-secondary transition-colors">
+                            <Link href="#services" className="text-sm font-semibold leading-6 transition-colors text-foreground hover:text-secondary">
                                 View Services <span aria-hidden="true">→</span>
                             </Link>
                         </motion.div>
@@ -69,7 +73,7 @@ export default function Welcome() {
 
                     {/* Features Grid */}
                     <motion.div
-                        className="mt-32 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
+                        className="grid grid-cols-1 gap-8 mt-32 sm:grid-cols-2 lg:grid-cols-3"
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.3 }}
@@ -108,13 +112,13 @@ export default function Welcome() {
                         ].map((feature, index) => (
                             <motion.div
                                 key={index}
-                                className="relative overflow-hidden rounded-3xl border border-gray-200 dark:border-gray-800 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-8 hover:border-secondary/50 transition-colors duration-300"
+                                className="overflow-hidden relative p-8 bg-gradient-to-b from-gray-50 to-white rounded-3xl border border-gray-200 transition-colors duration-300 dark:border-gray-800 dark:from-gray-900 dark:to-gray-800 hover:border-secondary/50"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.4, delay: 0.1 * index }}
-                                whileHover={{ y: -5 }}
+                                // whileHover={{ y: -5 }}
                             >
-                                <div className="mb-4 p-2 inline-block rounded-xl bg-primary/10">
+                                <div className="inline-block p-2 mb-4 rounded-xl bg-primary/10">
                                     <feature.icon className="w-6 h-6 text-primary" />
                                 </div>
                                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -130,7 +134,7 @@ export default function Welcome() {
                     {/* Services Section */}
                     <div id="services" className="mt-32 text-center">
                         <motion.h2
-                            className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground"
+                            className="text-3xl font-bold tracking-tight sm:text-4xl text-foreground"
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
                             viewport={{ once: true }}
@@ -146,7 +150,7 @@ export default function Welcome() {
                             Comprehensive dental care for your entire family
                         </motion.p>
 
-                        <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-8 mt-16 sm:grid-cols-2 lg:grid-cols-3">
                             {[
                                 {
                                     title: 'General Dentistry',
@@ -162,7 +166,7 @@ export default function Welcome() {
                                 },
                                 {
                                     title: 'Dental Care',
-                                    description: 'Advanced treatments for optimal oral health',
+                                    description: 'Basic and advanced treatments for optimal oral health',
                                     icon: Shield,
                                     features: ['Root Canal', 'Dental Implants', 'Orthodontics']
                                 }
@@ -175,19 +179,19 @@ export default function Welcome() {
                                     viewport={{ once: true }}
                                     transition={{ delay: index * 0.2 }}
                                 >
-                                    <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-background to-card p-8 hover:border-secondary/50 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-secondary/5">
-                                        <div className="mb-4 p-3 inline-block rounded-xl bg-primary/10 group-hover:bg-secondary/20 transition-colors">
-                                            <service.icon className="w-8 h-8 text-primary group-hover:text-secondary transition-colors" />
+                                    <div className="overflow-hidden relative p-8 bg-gradient-to-b rounded-3xl border transition-all duration-300 border-border from-background to-card hover:border-secondary/50 group-hover:shadow-lg group-hover:shadow-secondary/5 dark:border-gray-800 dark:from-gray-900 dark:to-gray-800">
+                                        <div className="inline-block p-3 mb-4 rounded-xl transition-colors bg-primary/10 group-hover:bg-secondary/20">
+                                            <service.icon className="w-8 h-8 transition-colors text-primary group-hover:text-secondary" />
                                         </div>
-                                        <h3 className="text-xl font-semibold text-foreground mb-4">
+                                        <h3 className="mb-4 text-xl font-semibold text-foreground">
                                             {service.title}
                                         </h3>
-                                        <p className="text-muted-foreground mb-6">
+                                        <p className="mb-6 text-muted-foreground">
                                             {service.description}
                                         </p>
                                         <ul className="space-y-2">
                                             {service.features.map((feature, i) => (
-                                                <li key={i} className="text-sm text-muted-foreground flex items-center">
+                                                <li key={i} className="flex items-center text-sm text-muted-foreground">
                                                     <span className="mr-2 text-primary">•</span>
                                                     {feature}
                                                 </li>
@@ -206,8 +210,8 @@ export default function Welcome() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                     >
-                        <div className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-primary/90 via-secondary/90 to-primary/90 px-6 py-16 sm:py-24 shadow-2xl sm:px-24">
-                            <div className="mx-auto max-w-3xl text-center mb-12">
+                        <div className="isolate overflow-hidden relative px-6 py-16 bg-gradient-to-br rounded-3xl shadow-2xl from-primary/90 via-secondary/90 to-primary/90 sm:py-24 sm:px-24">
+                            <div className="mx-auto mb-12 max-w-3xl text-center">
                                 <h2 className="text-3xl font-bold tracking-tight text-background sm:text-4xl">
                                     Ready to Transform Your Smile?
                                 </h2>
@@ -229,36 +233,36 @@ export default function Welcome() {
                                             <div className="space-y-4">
                                                 <motion.a
                                                     href="tel:09177408417"
-                                                    className="flex items-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group"
+                                                    className="flex items-center p-4 rounded-xl transition-colors bg-white/5 hover:bg-white/10 group"
                                                     initial={{ opacity: 0 }}
                                                     whileInView={{ opacity: 1 }}
                                                     viewport={{ once: true }}
                                                     transition={{ delay: 0.2 }}
                                                 >
-                                                    <div className="p-2 rounded-lg bg-background/10 group-hover:bg-background/20 transition-colors">
+                                                    <div className="p-2 rounded-lg transition-colors bg-background/10 group-hover:bg-background/20">
                                                         <Phone className="w-6 h-6 text-background" />
                                                     </div>
-                                                    <div className="ml-4 text-left flex-1">
+                                                    <div className="flex-1 ml-4 text-left">
                                                         <p className="font-medium text-background">Contact Us</p>
                                                         <p className="text-background/80">0917 740 8417</p>
-                                                        <p className="text-background/60 text-sm">Available during clinic hours</p>
+                                                        <p className="text-sm text-background/60">Available during clinic hours</p>
                                                     </div>
                                                 </motion.a>
                                                 <motion.a
                                                     href="mailto:contact@doctorsmile.com"
-                                                    className="flex items-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group"
+                                                    className="flex items-center p-4 rounded-xl transition-colors bg-white/5 hover:bg-white/10 group"
                                                     initial={{ opacity: 0 }}
                                                     whileInView={{ opacity: 1 }}
                                                     viewport={{ once: true }}
                                                     transition={{ delay: 0.3 }}
                                                 >
-                                                    <div className="p-2 rounded-lg bg-background/10 group-hover:bg-background/20 transition-colors">
+                                                    <div className="p-2 rounded-lg transition-colors bg-background/10 group-hover:bg-background/20">
                                                         <Mail className="w-6 h-6 text-background" />
                                                     </div>
-                                                    <div className="ml-4 text-left flex-1">
+                                                    <div className="flex-1 ml-4 text-left">
                                                         <p className="font-medium text-background">Email Inquiries</p>
                                                         <p className="text-background/80">contact@doctorsmile.com</p>
-                                                        <p className="text-background/60 text-sm">Response within 24 hours</p>
+                                                        <p className="text-sm text-background/60">Response within 24 hours</p>
                                                     </div>
                                                 </motion.a>
                                                 <motion.div
@@ -271,14 +275,14 @@ export default function Welcome() {
                                                     <div className="p-2 rounded-lg bg-background/10">
                                                         <Clock className="w-6 h-6 text-background" />
                                                     </div>
-                                                    <div className="ml-4 text-left flex-1">
+                                                    <div className="flex-1 ml-4 text-left">
                                                         <p className="font-medium text-background">Clinic Hours</p>
                                                         <p className="text-background/80">Mon-Fri: 9:00 AM - 4:00 PM</p>
-                                                        <p className="text-background/60 text-sm">Walk-ins welcome during clinic hours</p>
+                                                        <p className="text-sm text-background/60">Walk-ins welcome during clinic hours</p>
                                                     </div>
                                                 </motion.div>
                                                 <motion.div
-                                                    className="flex flex-col items-center justify-center p-4 rounded-xl bg-white/5"
+                                                    className="flex flex-col justify-center items-center p-4 rounded-xl bg-white/5"
                                                     initial={{ opacity: 0 }}
                                                     whileInView={{ opacity: 1 }}
                                                     viewport={{ once: true }}
@@ -287,13 +291,13 @@ export default function Welcome() {
                                                     <Link href={route('register')} className="w-full">
                                                         <Button
                                                             size="lg"
-                                                            className="w-full bg-background hover:bg-background/90 text-primary hover:text-secondary transition-colors"
+                                                            className="w-full font-semibold transition-colors text-md bg-background hover:bg-background/90 text-primary hover:text-secondary"
                                                         >
-                                                            <Calendar className="w-5 h-5 mr-2" />
+                                                            <Calendar className="mr-2 w-6 h-6" />
                                                             Schedule Appointment
                                                         </Button>
                                                     </Link>
-                                                    <p className="text-background/60 text-sm mt-2">Quick online booking available 24/7</p>
+                                                    <p className="mt-2 text-sm text-background/60">Quick online booking available 24/7</p>
                                                 </motion.div>
                                             </div>
                                         </div>
@@ -329,6 +333,15 @@ export default function Welcome() {
                                                             aria-label="Interactive map showing the location of Doctor Smile Dental Center"
                                                         />
                                                     </div>
+                                                    <div className="flex items-center pt-4 pb-1">
+                                                        <div className="p-2 rounded-lg bg-background/10">
+                                                            <MapPin className="w-6 h-6 text-background" />
+                                                        </div>
+                                                        <div className="flex-1 ml-4 text-left">
+                                                            <p className="font-medium text-background">Doctor Smile Dental Clinic</p>
+                                                            <p className="text-background/80">5 Legazpi Street, Ugac Norte, Tuguegarao City</p>
+                                                        </div>
+                                                    </div>
                                                 </motion.div>
                                             </div>
                                         </div>
@@ -340,7 +353,7 @@ export default function Welcome() {
                 </div>
 
                 {/* Background Elements */}
-                <div className="absolute inset-0 -z-10 overflow-hidden">
+                <div className="overflow-hidden absolute inset-0 -z-10">
                     <div className="absolute left-[50%] top-0 h-[1000px] w-[1000px] -translate-x-1/2 bg-gradient-to-tr from-primary/20 via-secondary/20 to-primary/20 opacity-30 blur-3xl" />
                     <div className="absolute right-[25%] top-[50%] h-[800px] w-[800px] bg-gradient-to-tr from-secondary/20 via-primary/20 to-secondary/20 opacity-30 blur-3xl" />
                 </div>

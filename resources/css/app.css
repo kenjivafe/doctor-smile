@@ -5,11 +5,13 @@
 @source "../views";
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        "Nunito", ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -47,25 +49,25 @@
 :root {
     --background: oklch(0.98 0 0);
     --foreground: oklch(0.2 0 0);
-    
+
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.2 0 0);
-    
+
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.2 0 0);
-    
+
     --primary: oklch(0.55 0.2 240);
     --primary-foreground: oklch(1 0 0);
-    
+
     --secondary: oklch(0.65 0.15 150);
     --secondary-foreground: oklch(1 0 0);
-    
+
     --muted: oklch(0.96 0 0);
     --muted-foreground: oklch(0.45 0 0);
-    
+
     --accent: oklch(0.65 0.15 150);
     --accent-foreground: oklch(1 0 0);
-    
+
     --destructive: oklch(0.6 0.25 30);
     --destructive-foreground: oklch(1 0 0);
 
@@ -79,28 +81,28 @@
 .dark {
     --background: oklch(0.12 0 0);
     --foreground: oklch(0.98 0 0);
-    
+
     --card: oklch(0.15 0 0);
     --card-foreground: oklch(0.98 0 0);
-    
+
     --popover: oklch(0.15 0 0);
     --popover-foreground: oklch(0.98 0 0);
-    
+
     --primary: oklch(0.7 0.2 240);
     --primary-foreground: oklch(0.12 0 0);
-    
+
     --secondary: oklch(0.75 0.15 150);
     --secondary-foreground: oklch(0.12 0 0);
-    
+
     --muted: oklch(0.18 0 0);
     --muted-foreground: oklch(0.7 0 0);
-    
+
     --accent: oklch(0.75 0.15 150);
     --accent-foreground: oklch(0.12 0 0);
-    
+
     --destructive: oklch(0.7 0.25 30);
     --destructive-foreground: oklch(1 0 0);
-    
+
     --border: oklch(0.2 0 0);
     --input: oklch(0.2 0 0);
     --ring: oklch(0.8 0 0);
