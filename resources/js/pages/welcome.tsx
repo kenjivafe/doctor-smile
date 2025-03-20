@@ -210,12 +210,12 @@ export default function Welcome() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                     >
-                        <div className="isolate overflow-hidden relative px-6 py-16 bg-gradient-to-br rounded-3xl shadow-2xl from-primary/90 via-secondary/90 to-primary/90 sm:py-24 sm:px-24">
+                        <div className="isolate overflow-hidden relative px-6 py-16 bg-gradient-to-br rounded-3xl shadow-2xl from-primary/90 via-secondary/90 to-primary/90 dark:from-primary/10 dark:via-secondary/20 dark:to-primary/10 sm:py-24 sm:px-24">
                             <div className="mx-auto mb-12 max-w-3xl text-center">
-                                <h2 className="text-3xl font-bold tracking-tight text-background sm:text-4xl">
+                                <h2 className="text-3xl font-bold tracking-tight text-background sm:text-4xl dark:text-foreground">
                                     Ready to Transform Your Smile?
                                 </h2>
-                                <p className="mx-auto mt-6 text-lg leading-8 text-background/90">
+                                <p className="mx-auto mt-6 text-lg leading-8 text-background/90 dark:text-foreground/90">
                                     Book your appointment today and take the first step towards a brighter, healthier smile.
                                 </p>
                             </div>
@@ -229,7 +229,7 @@ export default function Welcome() {
                                         transition={{ delay: 0.1 }}
                                     >
                                         <div className="space-y-6">
-                                            <h3 className="text-2xl font-semibold text-background">Contact Us</h3>
+                                            <h3 className="text-2xl font-semibold text-background dark:text-foreground">Contact Us</h3>
                                             <div className="space-y-4">
                                                 <motion.a
                                                     href="tel:09177408417"
@@ -239,13 +239,13 @@ export default function Welcome() {
                                                     viewport={{ once: true }}
                                                     transition={{ delay: 0.2 }}
                                                 >
-                                                    <div className="p-2 rounded-lg transition-colors bg-background/10 group-hover:bg-background/20">
-                                                        <Phone className="w-6 h-6 text-background" />
+                                                    <div className="p-2 rounded-lg transition-colors bg-background/10 group-hover:bg-background/20 dark:bg-foreground/10">
+                                                        <Phone className="w-6 h-6 text-background dark:text-foreground" />
                                                     </div>
                                                     <div className="flex-1 ml-4 text-left">
-                                                        <p className="font-medium text-background">Contact Us</p>
-                                                        <p className="text-background/80">0917 740 8417</p>
-                                                        <p className="text-sm text-background/60">Available during clinic hours</p>
+                                                        <p className="font-medium text-background dark:text-foreground">Contact Us</p>
+                                                        <p className="text-background/80 dark:text-foreground/80">0917 740 8417</p>
+                                                        <p className="text-sm text-background/60 dark:text-foreground/60">Available during clinic hours</p>
                                                     </div>
                                                 </motion.a>
                                                 <motion.a
@@ -256,13 +256,13 @@ export default function Welcome() {
                                                     viewport={{ once: true }}
                                                     transition={{ delay: 0.3 }}
                                                 >
-                                                    <div className="p-2 rounded-lg transition-colors bg-background/10 group-hover:bg-background/20">
-                                                        <Mail className="w-6 h-6 text-background" />
+                                                    <div className="p-2 rounded-lg transition-colors bg-background/10 group-hover:bg-background/20 dark:bg-foreground/10">
+                                                        <Mail className="w-6 h-6 text-background dark:text-foreground" />
                                                     </div>
                                                     <div className="flex-1 ml-4 text-left">
-                                                        <p className="font-medium text-background">Email Inquiries</p>
-                                                        <p className="text-background/80">contact@doctorsmile.com</p>
-                                                        <p className="text-sm text-background/60">Response within 24 hours</p>
+                                                        <p className="font-medium text-background dark:text-foreground">Email Inquiries</p>
+                                                        <p className="text-background/80 dark:text-foreground/80">contact@doctorsmile.com</p>
+                                                        <p className="text-sm text-background/60 dark:text-foreground/60">Response within 24 hours</p>
                                                     </div>
                                                 </motion.a>
                                                 <motion.div
@@ -272,13 +272,13 @@ export default function Welcome() {
                                                     viewport={{ once: true }}
                                                     transition={{ delay: 0.4 }}
                                                 >
-                                                    <div className="p-2 rounded-lg bg-background/10">
-                                                        <Clock className="w-6 h-6 text-background" />
+                                                    <div className="p-2 rounded-lg bg-background/10 dark:bg-foreground/10">
+                                                        <Clock className="w-6 h-6 text-background dark:text-foreground" />
                                                     </div>
                                                     <div className="flex-1 ml-4 text-left">
-                                                        <p className="font-medium text-background">Clinic Hours</p>
-                                                        <p className="text-background/80">Mon-Fri: 9:00 AM - 4:00 PM</p>
-                                                        <p className="text-sm text-background/60">Walk-ins welcome during clinic hours</p>
+                                                        <p className="font-medium text-background dark:text-foreground">Clinic Hours</p>
+                                                        <p className="text-background/80 dark:text-foreground/80">Mon-Fri: 9:00 AM - 4:00 PM</p>
+                                                        <p className="text-sm text-background/60 dark:text-foreground/60">Walk-ins welcome during clinic hours</p>
                                                     </div>
                                                 </motion.div>
                                                 <motion.div
@@ -291,13 +291,13 @@ export default function Welcome() {
                                                     <Link href={route('register')} className="w-full">
                                                         <Button
                                                             size="lg"
-                                                            className="w-full font-semibold transition-colors text-md bg-background hover:bg-background/90 text-primary hover:text-secondary"
+                                                            className="w-full font-semibold transition-colors text-md bg-background hover:bg-background/90 text-primary hover:text-secondary dark:bg-primary/20 dark:hover:bg-primary/30 dark:text-foreground"
                                                         >
-                                                            <Calendar className="mr-2 w-6 h-6" />
+                                                            <Calendar className="mr-2 w-6 h-6"/>
                                                             Schedule Appointment
                                                         </Button>
                                                     </Link>
-                                                    <p className="mt-2 text-sm text-background/60">Quick online booking available 24/7</p>
+                                                    <p className="mt-2 text-sm text-background/60 dark:text-foreground/60">Quick online booking available 24/7</p>
                                                 </motion.div>
                                             </div>
                                         </div>
@@ -310,7 +310,7 @@ export default function Welcome() {
                                         transition={{ delay: 0.2 }}
                                     >
                                         <div className="space-y-6">
-                                            <h3 className="text-2xl font-semibold text-background">Location</h3>
+                                            <h3 className="text-2xl font-semibold text-background dark:text-foreground">Location</h3>
                                             <div className="space-y-4">
 
                                                 <motion.div
@@ -334,12 +334,12 @@ export default function Welcome() {
                                                         />
                                                     </div>
                                                     <div className="flex items-center pt-4 pb-1">
-                                                        <div className="p-2 rounded-lg bg-background/10">
-                                                            <MapPin className="w-6 h-6 text-background" />
+                                                        <div className="p-2 rounded-lg bg-background/10 dark:bg-foreground/10">
+                                                            <MapPin className="w-6 h-6 text-background dark:text-foreground" />
                                                         </div>
                                                         <div className="flex-1 ml-4 text-left">
-                                                            <p className="font-medium text-background">Doctor Smile Dental Clinic</p>
-                                                            <p className="text-background/80">5 Legazpi Street, Ugac Norte, Tuguegarao City</p>
+                                                            <p className="font-medium text-background dark:text-foreground">Doctor Smile Dental Clinic</p>
+                                                            <p className="text-background/80 dark:text-foreground/80">5 Legazpi Street, Ugac Norte, Tuguegarao City</p>
                                                         </div>
                                                     </div>
                                                 </motion.div>
