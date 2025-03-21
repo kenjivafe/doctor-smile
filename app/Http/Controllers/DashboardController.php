@@ -94,7 +94,7 @@ class DashboardController extends Controller
      */
     private function defaultDashboard()
     {
-        return Inertia::render('Dashboard', [
+        return Inertia::render('dashboard', [
             'userRole' => 'default',
         ]);
     }
