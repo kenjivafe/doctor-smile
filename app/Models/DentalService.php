@@ -23,7 +23,6 @@ class DentalService extends Model
         'category',
         'is_active',
         'image_path',
-        'insurance_covered',
     ];
 
     /**

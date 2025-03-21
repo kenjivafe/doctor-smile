@@ -20,7 +20,6 @@ return new class extends Migration
             $table->enum('category', ['general', 'cosmetic', 'orthodontic', 'surgical', 'pediatric', 'preventive'])->default('general');
             $table->boolean('is_active')->default(true);
             $table->string('image_path')->nullable();
-            $table->boolean('insurance_covered')->default(false);
             $table->timestamps();
         });
     }
