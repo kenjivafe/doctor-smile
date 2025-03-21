@@ -1,8 +1,9 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, Users, Clock, DollarSign, Calendar } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
+import { PageProps } from '@inertiajs/core';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,11 +16,76 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+// Define types for our data
+interface AppointmentData {
+    id: number;
+    patient_id: number;
+    dentist_id: number;
+    dental_service_id: number;
+    appointment_datetime: string;
+    duration_minutes: number;
+    status: string;
+    notes: string | null;
+    treatment_notes: string | null;
+    cost: number;
+    cancellation_reason: string | null;
+    created_at: string;
+    updated_at: string;
+    patient: {
+        user: {
+            name: string;
+        };
+    };
+    dentist: {
+        name: string;
+    };
+    dentalService: {
+        name: string;
+        price: number;
+    };
+}
+
+interface AdminDashboardProps extends PageProps {
+    stats?: {
+        totalPatients?: number;
+        totalAppointments?: number;
+        upcomingAppointments?: number;
+        revenues?: number | string;
+    };
+    recentAppointments?: AppointmentData[];
+    statusDistribution?: Record<string, number>;
+    dentistWorkload?: Array<{
+        dentist_name: string;
+        count: number;
+    }>;
+    userRole: string;
+}
+
 export default function AdminDashboard() {
+    // Get the page props with proper typing
+    const {
+        stats,
+        recentAppointments,
+        statusDistribution,
+        dentistWorkload
+    } = usePage<AdminDashboardProps>().props;
+
+    // Add default values to prevent errors
+    const safeStats = {
+        totalPatients: stats?.totalPatients || 0,
+        totalAppointments: stats?.totalAppointments || 0,
+        upcomingAppointments: stats?.upcomingAppointments || 0,
+        revenues: stats?.revenues || 0
+    };
+
+    const safeRecentAppointments = recentAppointments || [];
+    const safeStatusDistribution = statusDistribution || {};
+    const safeDentistWorkload = dentistWorkload || [];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <div className="flex flex-col flex-1 gap-4 p-4 h-full">
                 <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
                 <p className="text-muted-foreground">
                     Welcome to the Doctor Smile admin dashboard. Manage your dental clinic here.
@@ -27,46 +93,46 @@ export default function AdminDashboard() {
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <Users className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">127</div>
-                            <p className="text-xs text-muted-foreground">+5 from last month</p>
+                            <div className="text-2xl font-bold">{safeStats.totalPatients}</div>
+                            <p className="text-xs text-muted-foreground">Registered patients</p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
-                            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
+                            <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
+                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">12</div>
-                            <p className="text-xs text-muted-foreground">3 pending approval</p>
+                            <div className="text-2xl font-bold">{safeStats.totalAppointments}</div>
+                            <p className="text-xs text-muted-foreground">{safeStats.upcomingAppointments} upcoming</p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Weekly Revenue</CardTitle>
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
+                            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+                            <DollarSign className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">$4,235</div>
-                            <p className="text-xs text-muted-foreground">+12% from last week</p>
+                            <div className="text-2xl font-bold">₱ {parseFloat(String(safeStats.revenues)).toFixed(2)}</div>
+                            <p className="text-xs text-muted-foreground">From completed appointments</p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Average Wait Time</CardTitle>
-                            <Clock className="h-4 w-4 text-muted-foreground" />
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
+                            <CardTitle className="text-sm font-medium">Dentist Workload</CardTitle>
+                            <Clock className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">24m</div>
-                            <p className="text-xs text-muted-foreground">-2m from last week</p>
+                            <div className="text-2xl font-bold">{safeDentistWorkload.length}</div>
+                            <p className="text-xs text-muted-foreground">Active dentists</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -74,51 +140,95 @@ export default function AdminDashboard() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                     <Card className="col-span-4">
                         <CardHeader>
-                            <CardTitle>Appointment Analytics</CardTitle>
+                            <CardTitle>Appointment Status</CardTitle>
                             <CardDescription>
-                                Appointment trends for the last 30 days
+                                Current appointment distribution
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="h-[300px]">
-                            {/* Chart would go here - placeholder for now */}
-                            <div className="flex h-full items-center justify-center rounded-md border border-dashed">
-                                <p className="text-sm text-muted-foreground">Appointment analytics chart</p>
+                            <div className="space-y-4">
+                                {Object.entries(safeStatusDistribution).map(([status, count]) => (
+                                    <div key={status} className="flex justify-between items-center">
+                                        <div className="flex gap-2 items-center">
+                                            <div className={`w-3 h-3 rounded-full ${getStatusColorClass(status)}`} />
+                                            <p className="text-sm font-medium capitalize">{status}</p>
+                                        </div>
+                                        <p className="text-sm font-medium">{count}</p>
+                                    </div>
+                                ))}
                             </div>
                         </CardContent>
                     </Card>
-                    
+
                     <Card className="col-span-3">
                         <CardHeader>
-                            <CardTitle>Upcoming Appointments</CardTitle>
+                            <CardTitle>Recent Appointments</CardTitle>
                             <CardDescription>
-                                Next appointments scheduled
+                                Most recently created appointments
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                    <div key={i} className="flex items-center gap-4">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                                            <Calendar className="h-5 w-5 text-primary" />
+                                {safeRecentAppointments.map((appointment) => (
+                                    <div key={appointment.id} className="flex gap-4 items-center">
+                                        <div className="flex justify-center items-center w-9 h-9 rounded-full bg-primary/10">
+                                            <Calendar className="w-5 h-5 text-primary" />
                                         </div>
                                         <div className="flex-1 space-y-1">
-                                            <p className="text-sm font-medium leading-none">Patient {i + 1}</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {new Date(Date.now() + (i + 1) * 86400000).toLocaleDateString()} at {
-                                                    ['9:00 AM', '10:30 AM', '1:15 PM', '3:45 PM', '5:00 PM'][i]
-                                                }
+                                            <p className="text-sm font-medium leading-none">
+                                                {appointment.patient.user.name}
                                             </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {new Date(appointment.appointment_datetime).toLocaleDateString()} at {' '}
+                                                {new Date(appointment.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                        <div className={`text-xs font-medium capitalize ${getStatusTextClass(appointment.status)}`}>
+                                            {appointment.status}
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </CardContent>
-                        <CardFooter>
-                            <button className="text-sm text-primary hover:underline">View all appointments</button>
-                        </CardFooter>
                     </Card>
                 </div>
             </div>
         </AppLayout>
     );
+}
+
+// Helper function to get status color for the background
+function getStatusColorClass(status: string): string {
+    switch (status) {
+        case 'scheduled':
+            return 'bg-blue-500';
+        case 'confirmed':
+            return 'bg-green-500';
+        case 'completed':
+            return 'bg-emerald-500';
+        case 'cancelled':
+            return 'bg-red-500';
+        case 'no_show':
+            return 'bg-amber-500';
+        default:
+            return 'bg-gray-500';
+    }
+}
+
+// Helper function to get status color for text
+function getStatusTextClass(status: string): string {
+    switch (status) {
+        case 'scheduled':
+            return 'text-blue-500';
+        case 'confirmed':
+            return 'text-green-500';
+        case 'completed':
+            return 'text-emerald-500';
+        case 'cancelled':
+            return 'text-red-500';
+        case 'no_show':
+            return 'text-amber-500';
+        default:
+            return 'text-gray-500';
+    }
 }

@@ -29,6 +29,7 @@ class AppointmentSeeder extends Seeder
         
         // Create appointments for each status
         $this->createPastAppointments($patients, $dentists, $services);
+        $this->createTodayAppointments($patients, $dentists, $services);
         $this->createUpcomingAppointments($patients, $dentists, $services);
     }
     
@@ -70,6 +71,59 @@ class AppointmentSeeder extends Seeder
                     'dental_service_id' => $services->random()->id,
                     'appointment_datetime' => Carbon::now()->subDays(rand(1, 30))->setTime(rand(9, 16), [0, 15, 30, 45][rand(0, 3)]),
                     'status' => 'no_show',
+                ]);
+        }
+    }
+    
+    /**
+     * Create appointments for today (scheduled, confirmed)
+     */
+    private function createTodayAppointments($patients, $dentists, $services): void
+    {
+        // Current hour in 24-hour format
+        $currentHour = Carbon::now()->hour;
+        
+        // Calculate remaining business hours for today (assume business hours are 9-17)
+        $startHour = max($currentHour + 1, 9); // Start at least 1 hour from now, but not before 9 AM
+        $endHour = 17; // End of business day
+        
+        if ($startHour >= $endHour) {
+            // If it's already past business hours, create appointments for earlier today (as if they were upcoming)
+            $hoursArray = range(9, 16);
+        } else {
+            // Create appointments in the remaining business hours
+            $hoursArray = range($startHour, 16);
+        }
+        
+        // Create 2 confirmed appointments for today for each dentist
+        foreach ($dentists as $dentist) {
+            // Skip if no more available hours
+            if (count($hoursArray) < 1) break;
+            
+            // Morning appointment
+            $morningHour = 9;
+            $morningMinute = [0, 15, 30, 45][rand(0, 3)];
+            
+            Appointment::factory()
+                ->confirmed()
+                ->create([
+                    'patient_id' => $patients->random()->id,
+                    'dentist_id' => $dentist->id,
+                    'dental_service_id' => $services->random()->id,
+                    'appointment_datetime' => Carbon::today()->setTime($morningHour, $morningMinute),
+                ]);
+            
+            // Afternoon appointment
+            $afternoonHour = 14;
+            $afternoonMinute = [0, 15, 30, 45][rand(0, 3)];
+            
+            Appointment::factory()
+                ->confirmed()
+                ->create([
+                    'patient_id' => $patients->random()->id,
+                    'dentist_id' => $dentist->id,
+                    'dental_service_id' => $services->random()->id,
+                    'appointment_datetime' => Carbon::today()->setTime($afternoonHour, $afternoonMinute),
                 ]);
         }
     }

@@ -24,25 +24,25 @@ class UserSeeder extends Seeder
         // Create Dentists
         $dentists = [
             [
-                'name' => 'Dr. Raymond Timothy R. Obispo',
+                'name' => 'Raymond Timothy R. Obispo',
                 'email' => 'raymond@doctor-smile.com',
                 'password' => Hash::make('password'),
                 'role' => 'dentist',
             ],
             [
-                'name' => 'Dr. Sarah Johnson',
+                'name' => 'Sarah Johnson',
                 'email' => 'sarah@doctor-smile.com',
                 'password' => Hash::make('password'),
                 'role' => 'dentist',
             ],
             [
-                'name' => 'Dr. Michael Chen',
+                'name' => 'Michael Chen',
                 'email' => 'michael@doctor-smile.com',
                 'password' => Hash::make('password'),
                 'role' => 'dentist',
             ],
             [
-                'name' => 'Dr. Emily Rodriguez',
+                'name' => 'Emily Rodriguez',
                 'email' => 'emily@doctor-smile.com',
                 'password' => Hash::make('password'),
                 'role' => 'dentist',
