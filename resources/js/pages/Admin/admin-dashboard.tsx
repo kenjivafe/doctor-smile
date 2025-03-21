@@ -1,9 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, Users, Clock, DollarSign, Calendar } from 'lucide-react';
+import { CalendarDays, Users, Clock, PhilippinePeso, Calendar } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { PageProps } from '@inertiajs/core';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } from 'recharts';
+import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -61,7 +63,43 @@ interface AdminDashboardProps extends PageProps {
     userRole: string;
 }
 
+// Define chart data types
+interface StatusChartData {
+    name: string;
+    value: number;
+    color: string;
+    rawStatus: string;
+}
+
+// Define a type for Recharts PieChart active shape props with optional fields
+interface RechartsActiveShapeProps {
+    cx?: number;
+    cy?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    startAngle?: number;
+    endAngle?: number;
+    fill?: string;
+    payload?: StatusChartData;
+    percent?: number;
+    value?: number;
+}
+
+interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{
+        payload: StatusChartData;
+    }>;
+}
+
+interface LegendPayload {
+    value: string;
+}
+
 export default function AdminDashboard() {
+    // State for active pie segment
+    const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
+
     // Get the page props with proper typing
     const {
         stats,
@@ -81,6 +119,119 @@ export default function AdminDashboard() {
     const safeRecentAppointments = recentAppointments || [];
     const safeStatusDistribution = statusDistribution || {};
     const safeDentistWorkload = dentistWorkload || [];
+
+    // Helper function to format status names nicely
+    const formatStatusName = (status: string): string => {
+        return status
+            .charAt(0).toUpperCase() + 
+            status.slice(1)
+                .replace(/-/g, ' ')  // Replace hyphens with spaces
+                .replace(/_/g, ' '); // Replace underscores with spaces
+    };
+
+    // Format status distribution data for the pie chart
+    // Create the data in a specific order: Completed, Confirmed, Scheduled, No Show, Canceled
+    const statusOrder = ['completed', 'confirmed', 'scheduled', 'no-show', 'no_show', 'cancelled'];
+    const statusChartData: StatusChartData[] = statusOrder
+        .filter(status => status in safeStatusDistribution)
+        .map(status => ({
+            name: formatStatusName(status),
+            value: safeStatusDistribution[status] || 0,
+            color: getStatusColorForChart(status),
+            rawStatus: status
+        }));
+    
+    // Add any remaining statuses that might not be in our predefined order
+    Object.entries(safeStatusDistribution)
+        .filter(([status]) => !statusOrder.includes(status))
+        .forEach(([status, count]) => {
+            statusChartData.push({
+                name: formatStatusName(status),
+                value: count,
+                color: getStatusColorForChart(status),
+                rawStatus: status
+            });
+        });
+
+    // Handle pie segment click
+    const handlePieClick = (_data: unknown, index: number) => {
+        setActiveIndex(index === activeIndex ? undefined : index);
+        // Future enhancement: Could filter the appointments list by this status
+    };
+
+    // Handle mouse enter
+    const handlePieEnter = (_: unknown, index: number) => {
+        setActiveIndex(index);
+    };
+
+    // Handle mouse leave
+    const handlePieLeave = () => {
+        setActiveIndex(undefined);
+    };
+
+    // Custom active shape to render when a segment is active
+    const renderActiveShape = (props: RechartsActiveShapeProps) => {
+        const cx = props.cx ?? 0;
+        const cy = props.cy ?? 0;
+        const innerRadius = props.innerRadius ?? 0;
+        const outerRadius = props.outerRadius ?? 0;
+        const startAngle = props.startAngle ?? 0;
+        const endAngle = props.endAngle ?? 0;
+        const fill = props.fill ?? '#8884d8';
+        const payload = props.payload;
+        const percent = props.percent ?? 0;
+        const value = props.value ?? 0;
+
+        const name = payload?.name || '';
+
+        return (
+            <g>
+                <Sector
+                    cx={cx}
+                    cy={cy}
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius + 10}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    fill={fill}
+                    cornerRadius={4}
+                />
+                <Sector
+                    cx={cx}
+                    cy={cy}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    innerRadius={outerRadius + 14}
+                    outerRadius={outerRadius + 18}
+                    fill={fill}
+                    cornerRadius={2}
+                />
+                <text x={cx} y={cy - 16} dy={8} textAnchor="middle" fill={fill} className="text-lg font-medium">
+                    {name}
+                </text>
+                <text x={cx} y={cy + 16} textAnchor="middle" fill="#666" className="text-base">
+                    {`${value} (${(percent * 100).toFixed(0)}%)`}
+                </text>
+            </g>
+        );
+    };
+
+    // Custom tooltip for hover
+    const CustomTooltip = ({ active, payload }: TooltipProps) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div className="p-3 bg-white rounded-lg border border-gray-100 shadow-lg">
+                    <p className="text-sm font-bold" style={{ color: data.color }}>
+                        {data.name}
+                    </p>
+                    <p className="text-xs text-gray-600">Count: <span className="font-medium">{data.value}</span></p>
+                    <p className="text-xs text-gray-600">Percentage: <span className="font-medium">{((data.value / safeStats.totalAppointments) * 100).toFixed(1)}%</span></p>
+                </div>
+            );
+        }
+        return null;
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -117,7 +268,7 @@ export default function AdminDashboard() {
                     <Card>
                         <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-                            <DollarSign className="w-4 h-4 text-muted-foreground" />
+                            <PhilippinePeso className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">₱ {parseFloat(String(safeStats.revenues)).toFixed(2)}</div>
@@ -142,21 +293,54 @@ export default function AdminDashboard() {
                         <CardHeader>
                             <CardTitle>Appointment Status</CardTitle>
                             <CardDescription>
-                                Current appointment distribution
+                                Current appointment distribution. Click on segments for details.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="h-[300px]">
-                            <div className="space-y-4">
-                                {Object.entries(safeStatusDistribution).map(([status, count]) => (
-                                    <div key={status} className="flex justify-between items-center">
-                                        <div className="flex gap-2 items-center">
-                                            <div className={`w-3 h-3 rounded-full ${getStatusColorClass(status)}`} />
-                                            <p className="text-sm font-medium capitalize">{status}</p>
-                                        </div>
-                                        <p className="text-sm font-medium">{count}</p>
-                                    </div>
-                                ))}
-                            </div>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        activeIndex={activeIndex}
+                                        activeShape={renderActiveShape}
+                                        data={statusChartData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={110}
+                                        paddingAngle={4}
+                                        dataKey="value"
+                                        onClick={handlePieClick}
+                                        onMouseEnter={handlePieEnter}
+                                        onMouseLeave={handlePieLeave}
+                                        isAnimationActive={true}
+                                        animationBegin={0}
+                                        animationDuration={800}
+                                        animationEasing="ease-out"
+                                    >
+                                        {statusChartData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.color}
+                                                stroke="#fff"
+                                                strokeWidth={2}
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend
+                                        layout="horizontal"
+                                        verticalAlign="bottom"
+                                        align="center"
+                                        wrapperStyle={{
+                                            paddingTop: '20px',
+                                        }}
+                                        onClick={(data: LegendPayload) => {
+                                            const index = statusChartData.findIndex(item => item.name === data.value);
+                                            handlePieClick(null, index);
+                                        }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
                         </CardContent>
                     </Card>
 
@@ -197,37 +381,46 @@ export default function AdminDashboard() {
     );
 }
 
-// Helper function to get status color for the background
-function getStatusColorClass(status: string): string {
-    switch (status) {
+// Helper function to get status color for chart
+function getStatusColorForChart(status: string): string {
+    switch (status.toLowerCase()) {
         case 'scheduled':
-            return 'bg-blue-500';
+            return '#3b82f6'; // blue-500
         case 'confirmed':
-            return 'bg-green-500';
+            return '#10b981'; // emerald-500
         case 'completed':
-            return 'bg-emerald-500';
+            return '#f59e0b'; // amber-500
         case 'cancelled':
-            return 'bg-red-500';
+            return '#ef4444'; // red-500
+        case 'no-show':
         case 'no_show':
-            return 'bg-amber-500';
+            return '#6b7280'; // gray-500
+        case 'rescheduled':
+            return '#6366f1'; // indigo-500
+        case 'pending':
+            return '#9ca3af'; // gray-400
         default:
-            return 'bg-gray-500';
+            return '#d1d5db'; // gray-300
     }
 }
 
-// Helper function to get status color for text
+// Helper function to get status text class
 function getStatusTextClass(status: string): string {
-    switch (status) {
+    switch (status.toLowerCase()) {
         case 'scheduled':
             return 'text-blue-500';
         case 'confirmed':
-            return 'text-green-500';
-        case 'completed':
             return 'text-emerald-500';
+        case 'completed':
+            return 'text-violet-500';
         case 'cancelled':
             return 'text-red-500';
-        case 'no_show':
+        case 'no-show':
             return 'text-amber-500';
+        case 'rescheduled':
+            return 'text-indigo-500';
+        case 'pending':
+            return 'text-gray-400';
         default:
             return 'text-gray-500';
     }

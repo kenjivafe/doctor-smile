@@ -5,10 +5,10 @@ import { Calendar, Clock, Bell, Stethoscope, CreditCard, CalendarCheck, Sparkles
 
 export default function Welcome() {
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="min-h-screen bg-white dark:bg-background">
             <Head title="Home" />
             {/* Navigation */}
-            <nav className="fixed top-0 right-0 left-0 z-50 border-b border-gray-200 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 dark:border-gray-800">
+            <nav className="fixed top-0 right-0 left-0 z-50 border-b border-gray-200 backdrop-blur-md bg-white/80 dark:bg-background/80 dark:border-border">
                 <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
@@ -112,19 +112,18 @@ export default function Welcome() {
                         ].map((feature, index) => (
                             <motion.div
                                 key={index}
-                                className="overflow-hidden relative p-8 bg-gradient-to-b from-gray-50 to-white rounded-3xl border border-gray-200 transition-colors duration-300 dark:border-gray-800 dark:from-gray-900 dark:to-gray-800 hover:border-secondary/50"
+                                className="overflow-hidden relative p-8 bg-gradient-to-b from-background to-card rounded-3xl border border-border transition-all duration-300 dark:border-border dark:from-background dark:to-card hover:border-secondary/50 group hover:shadow-lg hover:shadow-secondary/5"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.4, delay: 0.1 * index }}
-                                // whileHover={{ y: -5 }}
                             >
-                                <div className="inline-block p-2 mb-4 rounded-xl bg-primary/10">
-                                    <feature.icon className="w-6 h-6 text-primary" />
+                                <div className="inline-block p-2 mb-4 rounded-xl transition-colors bg-primary/10 group-hover:bg-secondary/20">
+                                    <feature.icon className="w-6 h-6 transition-colors text-primary group-hover:text-secondary" />
                                 </div>
-                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                <h3 className="text-xl font-semibold text-foreground">
                                     {feature.title}
                                 </h3>
-                                <p className="mt-2 text-gray-600 dark:text-gray-400">
+                                <p className="mt-2 text-muted-foreground">
                                     {feature.description}
                                 </p>
                             </motion.div>
@@ -179,7 +178,7 @@ export default function Welcome() {
                                     viewport={{ once: true }}
                                     transition={{ delay: index * 0.2 }}
                                 >
-                                    <div className="overflow-hidden relative p-8 bg-gradient-to-b rounded-3xl border transition-all duration-300 border-border from-background to-card hover:border-secondary/50 group-hover:shadow-lg group-hover:shadow-secondary/5 dark:border-gray-800 dark:from-gray-900 dark:to-gray-800">
+                                    <div className="overflow-hidden relative p-8 bg-gradient-to-b rounded-3xl border transition-all duration-300 border-border from-background to-card hover:border-secondary/50 group-hover:shadow-lg group-hover:shadow-secondary/5 dark:border-border dark:from-background dark:to-card">
                                         <div className="inline-block p-3 mb-4 rounded-xl transition-colors bg-primary/10 group-hover:bg-secondary/20">
                                             <service.icon className="w-8 h-8 transition-colors text-primary group-hover:text-secondary" />
                                         </div>
