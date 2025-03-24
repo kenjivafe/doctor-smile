@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Clock, FileCheck, CalendarCheck, UserRound, CreditCard } from 'lucide-react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import { PageProps } from '@inertiajs/core';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -285,8 +285,10 @@ export default function PatientDashboard() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button variant="outline" size="sm" className="w-full">
-                                {profileCompletionPercentage < 100 ? 'Complete Profile' : 'View Profile'}
+                            <Button variant="outline" size="sm" className="w-full" asChild>
+                                <Link href={route('profile.edit')}>
+                                    {profileCompletionPercentage < 100 ? 'Complete Profile' : 'View Profile'}
+                                </Link>
                             </Button>
                         </CardFooter>
                     </Card>

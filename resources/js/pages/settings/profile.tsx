@@ -1,7 +1,7 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useEffect } from 'react';
 
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import PatientProfileForm from '@/components/patient-profile-form';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,13 +25,29 @@ interface ProfileForm {
     email: string;
 }
 
-export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
-    const { auth } = usePage<SharedData>().props;
-
-    const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
+export default function Profile({
+    auth,
+    mustVerifyEmail,
+    status,
+    patientProfile,
+    userRole
+}: {
+    auth: any;
+    mustVerifyEmail: boolean;
+    status?: string;
+    patientProfile?: any;
+    userRole?: string;
+}) {
+    const { data, setData, patch, errors, processing, recentlySuccessful, reset } = useForm<Required<ProfileForm>>({
         name: auth.user.name,
         email: auth.user.email,
     });
+
+    useEffect(() => {
+        if (recentlySuccessful) {
+            reset();
+        }
+    }, [recentlySuccessful, reset]);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -54,7 +71,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
                             <Input
                                 id="name"
-                                className="mt-1 block w-full"
+                                className="block mt-1 w-full"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
                                 required
@@ -71,7 +88,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             <Input
                                 id="email"
                                 type="email"
-                                className="mt-1 block w-full"
+                                className="block mt-1 w-full"
                                 value={data.email}
                                 onChange={(e) => setData('email', e.target.value)}
                                 required
@@ -84,7 +101,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
                         {mustVerifyEmail && auth.user.email_verified_at === null && (
                             <div>
-                                <p className="text-muted-foreground -mt-4 text-sm">
+                                <p className="-mt-4 text-sm text-muted-foreground">
                                     Your email address is unverified.{' '}
                                     <Link
                                         href={route('verification.send')}
@@ -104,7 +121,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             </div>
                         )}
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex gap-4 items-center">
                             <Button disabled={processing}>Save</Button>
 
                             <Transition
@@ -119,6 +136,10 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                         </div>
                     </form>
                 </div>
+
+                {userRole === 'patient' && (
+                    <PatientProfileForm patientData={patientProfile} />
+                )}
 
                 <DeleteUser />
             </SettingsLayout>
