@@ -179,44 +179,44 @@ export default function PatientDashboard() {
             'date_of_birth',
             'gender'
         ] as const;
-        
+
         type ProfileField = typeof requiredFields[number];
-        
+
         // Count how many fields are filled
         let filledFields = 0;
         requiredFields.forEach(field => {
             // Use type assertion with a more specific record type
             if ((safePatientDetails as Record<ProfileField, unknown>)[field]) filledFields++;
         });
-        
+
         // Calculate percentage
         return Math.round((filledFields / requiredFields.length) * 100);
     };
-    
+
     const profileCompletionPercentage = calculateProfileCompletion();
 
     // Create a more type-safe way to access patient details
     const getPatientDetail = (field: keyof typeof safePatientDetails) => {
         return safePatientDetails[field];
     };
-    
+
     // Helper to check if user is new (no appointments)
     const isNewUser = () => {
         return !appointments || appointments.length === 0;
     };
-    
+
     // Helper to check if balance is zero
     const isBalanceZero = () => {
         const balance = getPatientDetail('balance');
         return balance === 0 || balance === undefined || balance === null;
     };
-    
+
     // Helper to format the balance
     const formatBalance = () => {
         const balance = getPatientDetail('balance');
         return `₱${parseFloat(String(balance || 0)).toFixed(2)}`;
     };
-    
+
     // Helper to get appropriate balance display message
     const getBalanceDisplayText = () => {
         if (isNewUser() && isBalanceZero()) {
@@ -227,7 +227,7 @@ export default function PatientDashboard() {
             return formatBalance();
         }
     };
-    
+
     // Helper to get appropriate balance description
     const getBalanceDescription = () => {
         if (isNewUser() && isBalanceZero()) {
@@ -242,8 +242,8 @@ export default function PatientDashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Patient Dashboard" />
-            <div className="flex h-full flex-1 flex-col space-y-8 p-8">
-                <div className="flex items-center justify-between">
+            <div className="flex flex-col flex-1 p-8 space-y-8 h-full">
+                <div className="flex justify-between items-center">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Welcome back, {patientName}!</h2>
                         <p className="text-muted-foreground">
@@ -253,10 +253,10 @@ export default function PatientDashboard() {
                 </div>
 
                 {missingPatientRecord && (
-                    <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4">
+                    <div className="p-4 mb-4 bg-amber-50 border-l-4 border-amber-500">
                         <div className="flex">
                             <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <svg className="w-5 h-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                 </svg>
                             </div>
@@ -271,13 +271,13 @@ export default function PatientDashboard() {
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Profile Completion</CardTitle>
-                            <UserRound className="h-4 w-4 text-muted-foreground" />
+                            <UserRound className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{profileCompletionPercentage}%</div>
-                            <div className="mt-2 h-2 w-full rounded-full bg-primary/20">
+                            <div className="mt-2 w-full h-2 rounded-full bg-primary/20">
                                 <div
                                     className="h-full rounded-full bg-primary"
                                     style={{ width: `${profileCompletionPercentage}%` }}
@@ -294,9 +294,9 @@ export default function PatientDashboard() {
                     </Card>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Appointment History</CardTitle>
-                            <FileCheck className="h-4 w-4 text-muted-foreground" />
+                            <FileCheck className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{safeAppointments.length}</div>
@@ -310,9 +310,9 @@ export default function PatientDashboard() {
                     </Card>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Next Suggested Visit</CardTitle>
-                            <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+                            <CalendarCheck className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
@@ -328,22 +328,22 @@ export default function PatientDashboard() {
                     </Card>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
-                            <CreditCard className="h-4 w-4 text-muted-foreground" />
+                            <CreditCard className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
                                 {getBalanceDisplayText()}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="mt-1 text-xs text-muted-foreground">
                                 {getBalanceDescription()}
                             </p>
                         </CardContent>
                         <CardFooter>
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 className="w-full"
                                 disabled={isBalanceZero()}
                             >
@@ -367,10 +367,10 @@ export default function PatientDashboard() {
                             <div className="space-y-4">
                                 {safeAppointments.length > 0 ? (
                                     safeAppointments.map((appointment) => (
-                                        <div key={appointment.id} className="flex flex-col space-y-2 rounded-lg border p-4">
-                                            <div className="flex items-center justify-between">
+                                        <div key={appointment.id} className="flex flex-col p-4 space-y-2 rounded-lg border">
+                                            <div className="flex justify-between items-center">
                                                 <div className="flex items-center space-x-2">
-                                                    <Clock className="h-4 w-4 text-muted-foreground" />
+                                                    <Clock className="w-4 h-4 text-muted-foreground" />
                                                     <div className="font-medium">{formatTime(appointment.appointment_datetime)}</div>
                                                 </div>
                                                 <Badge variant={getStatusVariant(appointment.status || 'pending')}>
@@ -390,7 +390,7 @@ export default function PatientDashboard() {
                                             )}
                                             <div className="flex justify-between pt-2">
                                                 <div className="font-medium">
-                                                    ${appointment.cost?.toFixed(2) || (appointment.dentalService?.cost || 0).toFixed(2)}
+                                                    ${parseFloat(String(appointment.cost || appointment.dentalService?.cost || 0)).toFixed(2)}
                                                 </div>
                                                 <div className="flex space-x-2">
                                                     <Button size="sm" variant="outline">Reschedule</Button>
@@ -400,8 +400,8 @@ export default function PatientDashboard() {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                                        <CalendarDays className="mb-2 h-10 w-10 text-muted-foreground" />
+                                    <div className="flex flex-col justify-center items-center p-8 text-center rounded-lg border border-dashed">
+                                        <CalendarDays className="mb-2 w-10 h-10 text-muted-foreground" />
                                         <h3 className="mb-1 font-medium">No Appointments Today</h3>
                                         <p className="text-sm text-muted-foreground">
                                             You don't have any appointments scheduled for today.
@@ -426,10 +426,10 @@ export default function PatientDashboard() {
                             <div className="space-y-4">
                                 {safeAppointments.length > 0 ? (
                                     safeAppointments.map((appointment) => (
-                                        <div key={appointment.id} className="flex flex-col space-y-2 rounded-lg border p-4">
-                                            <div className="flex items-center justify-between">
+                                        <div key={appointment.id} className="flex flex-col p-4 space-y-2 rounded-lg border">
+                                            <div className="flex justify-between items-center">
                                                 <div className="flex items-center space-x-2">
-                                                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
                                                     <div className="font-medium">{formatDate(appointment.appointment_datetime)}</div>
                                                 </div>
                                                 <Badge variant={getStatusVariant(appointment.status || 'pending')}>
@@ -444,7 +444,7 @@ export default function PatientDashboard() {
                                             </div>
                                             <div className="flex justify-between pt-2">
                                                 <div className="font-medium">
-                                                    ${(appointment.dentalService?.cost || 0).toFixed(2)}
+                                                    ${parseFloat(String(appointment.dentalService?.cost || 0)).toFixed(2)}
                                                 </div>
                                                 <div className="flex space-x-2">
                                                     <Button size="sm" variant="outline">Reschedule</Button>
@@ -454,8 +454,8 @@ export default function PatientDashboard() {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                                        <CalendarDays className="mb-2 h-10 w-10 text-muted-foreground" />
+                                    <div className="flex flex-col justify-center items-center p-8 text-center rounded-lg border border-dashed">
+                                        <CalendarDays className="mb-2 w-10 h-10 text-muted-foreground" />
                                         <h3 className="mb-1 font-medium">No Upcoming Appointments</h3>
                                         <p className="text-sm text-muted-foreground">
                                             You don't have any appointments scheduled in the near future.

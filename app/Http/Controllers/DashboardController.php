@@ -181,8 +181,21 @@ class DashboardController extends Controller
 
         // Patient details including medical history
         $patientDetails = $missingPatientRecord 
-            ? ['name' => $user->name, 'email' => $user->email] 
-            : $patient->toArray();
+            ? [
+                'name' => $user->name, 
+                'email' => $user->email,
+                'phone_number' => '',
+                'address' => '',
+                'date_of_birth' => '',
+                'gender' => '',
+            ] 
+            : array_merge(
+                $patient->toArray(), 
+                [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ]
+            );
 
         return Inertia::render('Patient/patient-dashboard', [
             'appointments' => $appointments,
