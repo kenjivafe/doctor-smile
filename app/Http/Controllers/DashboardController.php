@@ -38,13 +38,13 @@ class DashboardController extends Controller
     }
 
     /**
-     * Admin dashboard view.
+     * Admin dashboard view with comprehensive analytics.
      *
      * @return \Inertia\Response
      */
     private function adminDashboard()
     {
-        // Fetch data needed for admin dashboard
+        // Basic stats for the dashboard cards
         $stats = [
             'totalPatients' => Patient::count(),
             'totalAppointments' => Appointment::count(),
@@ -65,18 +65,18 @@ class DashboardController extends Controller
         // Appointment status distribution
         $statusDistribution = Appointment::select('status', DB::raw('count(*) as count'))
             ->groupBy('status')
-            ->get()
             ->pluck('count', 'status')
             ->toArray();
 
         // Dentist workload
         $dentistWorkload = Appointment::select('dentist_id', DB::raw('count(*) as count'))
+            ->where('appointment_datetime', '>=', Carbon::now()->subMonths(1))
             ->groupBy('dentist_id')
             ->with('dentist')
             ->get()
             ->map(function ($item) {
                 return [
-                    'dentist_name' => $item->dentist->name,
+                    'dentist_name' => $item->dentist->name ?? 'Unknown',
                     'count' => $item->count,
                 ];
             });
@@ -204,5 +204,51 @@ class DashboardController extends Controller
         return Inertia::render('dashboard', [
             'userRole' => 'default',
         ]);
+    }
+    
+    /**
+     * Get appointment trend data for the last 6 months
+     * 
+     * @return array
+     */
+    private function getAppointmentTrendData()
+    {
+        $data = [];
+        $months = [];
+        
+        // Get last 6 months
+        for ($i = 5; $i >= 0; $i--) {
+            $month = Carbon::now()->subMonths($i);
+            $monthName = $month->format('M');
+            $months[$monthName] = [
+                'month' => $monthName,
+                'count' => 0
+            ];
+        }
+
+        // Get appointment counts for each month
+        $appointmentCounts = Appointment::select(
+                DB::raw('MONTH(appointment_datetime) as month'),
+                DB::raw('YEAR(appointment_datetime) as year'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->where('appointment_datetime', '>=', Carbon::now()->subMonths(6))
+            ->groupBy('year', 'month')
+            ->get();
+
+        // Map the DB results to the months array
+        foreach ($appointmentCounts as $count) {
+            $monthName = Carbon::createFromDate($count->year, $count->month, 1)->format('M');
+            if (isset($months[$monthName])) {
+                $months[$monthName]['count'] = $count->count;
+            }
+        }
+
+        // Convert associative array to indexed array
+        foreach ($months as $monthData) {
+            $data[] = $monthData;
+        }
+
+        return $data;
     }
 }

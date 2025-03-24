@@ -9,10 +9,6 @@ import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Admin',
-        href: '/admin',
-    },
-    {
         title: 'Dashboard',
         href: '/admin/dashboard',
     },
@@ -123,7 +119,7 @@ export default function AdminDashboard() {
     // Helper function to format status names nicely
     const formatStatusName = (status: string): string => {
         return status
-            .charAt(0).toUpperCase() + 
+            .charAt(0).toUpperCase() +
             status.slice(1)
                 .replace(/-/g, ' ')  // Replace hyphens with spaces
                 .replace(/_/g, ' '); // Replace underscores with spaces
@@ -140,7 +136,7 @@ export default function AdminDashboard() {
             color: getStatusColorForChart(status),
             rawStatus: status
         }));
-    
+
     // Add any remaining statuses that might not be in our predefined order
     Object.entries(safeStatusDistribution)
         .filter(([status]) => !statusOrder.includes(status))

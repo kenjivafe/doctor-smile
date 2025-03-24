@@ -10,10 +10,6 @@ import { PageProps } from '@inertiajs/core';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dentist',
-        href: '/dentist',
-    },
-    {
         title: 'Dashboard',
         href: '/dentist/dashboard',
     },

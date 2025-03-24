@@ -9,6 +9,13 @@ import { type BreadcrumbItem } from '@/types';
 
 // Types for the patient dashboard props
 interface PatientDashboardProps extends PageProps {
+    auth?: {
+        user?: {
+            id?: number;
+            name?: string;
+            email?: string;
+        }
+    };
     patientDetails?: {
         id?: number;
         name?: string;
@@ -131,7 +138,8 @@ export default function PatientDashboard() {
         patientDetails,
         appointments,
         nextAppointment,
-        missingPatientRecord
+        missingPatientRecord,
+        auth
     } = usePage<PatientDashboardProps>().props;
 
     // Extract data with default values for safety
@@ -139,7 +147,8 @@ export default function PatientDashboard() {
     const safeAppointments = appointments || [];
 
     // Extract patient data with defaults
-    const patientName = safePatientDetails.name || 'Patient';
+    // Use auth.user.name if available, fallback to patientDetails.name, then to 'Patient'
+    const patientName = auth?.user?.name || safePatientDetails.name || 'Patient';
 
     // Helper to safely get nested object properties
     const getNextAppointmentData = () => {
