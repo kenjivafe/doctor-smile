@@ -1,6 +1,6 @@
-import { type BreadcrumbItem, type SharedData } from '@/types';
+import { type BreadcrumbItem, type Auth } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useEffect } from 'react';
 
 import DeleteUser from '@/components/delete-user';
@@ -32,10 +32,10 @@ export default function Profile({
     patientProfile,
     userRole
 }: {
-    auth: any;
+    auth: Auth;
     mustVerifyEmail: boolean;
     status?: string;
-    patientProfile?: any;
+    patientProfile?: Record<string, unknown>;
     userRole?: string;
 }) {
     const { data, setData, patch, errors, processing, recentlySuccessful, reset } = useForm<Required<ProfileForm>>({
