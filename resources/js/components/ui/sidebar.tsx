@@ -189,7 +189,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-background border-r border-border flex h-full flex-col p-0 [&>button]:hidden"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -197,7 +197,7 @@ function Sidebar({
           }
           side={side}
         >
-          <div className="flex flex-col w-full h-full">{children}</div>
+          <div className="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground">{children}</div>
         </SheetContent>
       </Sheet>
     )

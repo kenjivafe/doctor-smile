@@ -2,6 +2,7 @@ import { Link, Head } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Bell, Stethoscope, CreditCard, CalendarCheck, Sparkles, Shield, Heart, Phone, Mail, MapPin } from 'lucide-react';
+import AppLogoIcon from '@/components/app-logo-icon';
 
 export default function Welcome() {
     return (
@@ -37,6 +38,13 @@ export default function Welcome() {
             <div className="relative pt-32 pb-20 sm:pt-40">
                 <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="text-center">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            <AppLogoIcon className="mx-auto mb-4 size-50" />
+                        </motion.div>
                         <motion.h1
                             className="text-4xl font-bold tracking-tight sm:text-6xl text-foreground"
                             initial={{ opacity: 0, y: 20 }}
@@ -112,7 +120,7 @@ export default function Welcome() {
                         ].map((feature, index) => (
                             <motion.div
                                 key={index}
-                                className="overflow-hidden relative p-8 bg-gradient-to-b from-background to-card rounded-3xl border border-border transition-all duration-300 dark:border-border dark:from-background dark:to-card hover:border-secondary/50 group hover:shadow-lg hover:shadow-secondary/5"
+                                className="overflow-hidden relative p-8 bg-gradient-to-b rounded-3xl border transition-all duration-300 from-background to-card border-border dark:border-border dark:from-background dark:to-card hover:border-secondary/50 group hover:shadow-lg hover:shadow-secondary/5"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.4, delay: 0.1 * index }}
