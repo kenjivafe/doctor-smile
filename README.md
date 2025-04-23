@@ -53,7 +53,7 @@ Doctor Smile is a modern dental clinic appointment system designed to streamline
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/doctor-smile.git
+git clone https://github.com/kenjivafe/doctor-smile.git
 cd doctor-smile
 ```
 
