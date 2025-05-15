@@ -8,7 +8,7 @@ import {
     BookOpen, 
     Calendar, 
     Clock, 
-    CreditCard, 
+
     File, 
     LayoutGrid, 
     Stethoscope, 
@@ -100,11 +100,7 @@ const patientNavItems: NavItem[] = [
         href: '/patient/records',
         icon: ClipboardList,
     },
-    {
-        title: 'Payments',
-        href: '/patient/payments',
-        icon: CreditCard,
-    }
+
 ];
 
 const footerNavItems: NavItem[] = [

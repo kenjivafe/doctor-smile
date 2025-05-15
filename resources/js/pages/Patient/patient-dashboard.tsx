@@ -390,7 +390,7 @@ export default function PatientDashboard() {
                                             )}
                                             <div className="flex justify-between pt-2">
                                                 <div className="font-medium">
-                                                    ${parseFloat(String(appointment.cost || appointment.dentalService?.cost || 0)).toFixed(2)}
+                                                    ₱{parseFloat(String(appointment.cost || appointment.dentalService?.cost || 0)).toFixed(2)}
                                                 </div>
                                                 <div className="flex space-x-2">
                                                     <Button size="sm" variant="outline">Reschedule</Button>
@@ -444,7 +444,7 @@ export default function PatientDashboard() {
                                             </div>
                                             <div className="flex justify-between pt-2">
                                                 <div className="font-medium">
-                                                    ${parseFloat(String(appointment.dentalService?.cost || 0)).toFixed(2)}
+                                                    ₱{parseFloat(String(appointment.dentalService?.cost || 0)).toFixed(2)}
                                                 </div>
                                                 <div className="flex space-x-2">
                                                     <Button size="sm" variant="outline">Reschedule</Button>

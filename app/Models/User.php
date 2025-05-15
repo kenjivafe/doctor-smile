@@ -83,6 +83,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the dentist profile associated with the user.
+     */
+    public function dentist(): HasOne
+    {
+        return $this->hasOne(Dentist::class);
+    }
+
+    /**
      * Get the appointments for the dentist user.
      */
     public function dentistAppointments(): HasMany
@@ -90,11 +98,5 @@ class User extends Authenticatable
         return $this->hasMany(Appointment::class, 'dentist_id');
     }
 
-    /**
-     * Get the availability slots for the dentist user.
-     */
-    public function availabilities(): HasMany
-    {
-        return $this->hasMany(DentistAvailability::class, 'dentist_id');
-    }
+
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Patient\AppointmentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,9 @@ use Illuminate\Support\Facades\Route;
 // Auth routes
 Route::post('auth/register', [AuthController::class, 'register']);
 Route::post('auth/login', [AuthController::class, 'login']);
+
+// Appointment time slots
+Route::get('time-slots', [AppointmentController::class, 'getAvailableTimeSlots']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Patient\AppointmentController as PatientAppointmentController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\DentistMiddleware;
 use App\Http\Middleware\PatientMiddleware;
@@ -82,13 +83,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             return app(DashboardController::class)->index();
         })->name('patient.dashboard');
 
-        Route::get('book-appointment', function () {
-            return Inertia::render('Patient/book-appointment');
-        })->name('patient.book-appointment');
-
-        Route::get('appointments', function () {
-            return Inertia::render('Patient/appointments');
-        })->name('patient.appointments');
+        // Appointment routes
+        Route::get('book-appointment', [PatientAppointmentController::class, 'create'])->name('patient.book-appointment');
+        Route::post('appointments', [PatientAppointmentController::class, 'store'])->name('patient.appointments.store');
+        Route::get('appointments', [PatientAppointmentController::class, 'index'])->name('patient.appointments');
+        Route::post('appointments/{id}/cancel', [PatientAppointmentController::class, 'cancel'])->name('patient.appointments.cancel');
+        
+        // API endpoint for available time slots
+        Route::get('api/available-slots', [PatientAppointmentController::class, 'getAvailableTimeSlots'])->name('api.available-slots');
 
         Route::get('records', function () {
             return Inertia::render('Patient/records');

@@ -44,7 +44,6 @@ Doctor Smile is a modern dental clinic appointment system designed to streamline
 - 📝 Patient appointment booking interface
 - 📝 Dentist appointment approval workflow
 - 📝 Google Calendar integration
-- 📝 Stripe payment integration
 - 📝 Email reminder system
 
 ## Installation (Development Environment)
@@ -90,7 +89,7 @@ npm run dev
   - Patients select date/time
   - Dentists approve, suggest a new time, or reject
   - Patients confirm or cancel suggested time
-  - Payment happens when the patient confirms
+  
 
 - Time Availability & Scheduling
   - Dentists manually set available working hours
