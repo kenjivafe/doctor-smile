@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { format, addMinutes } from 'date-fns';
+import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,25 +47,50 @@ export function DateTimeSelection({
     if (day === 0) {
       return [];
     }
-
+    
+    // Get the service duration (default to 30 mins if not provided)
+    const duration = serviceDuration || 30;
+    
     // Default slots structure
     const slots: TimeSlot[] = [];
+    
+    // We'll use these values to handle lunch breaks when filtering slots later
 
     // Morning slots (9AM - 12PM)
     for (let hour = 9; hour < 12; hour++) {
       for (const minute of [0, 30]) {
         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         const displayTime = format(new Date(`1970-01-01T${time}:00`), 'h:mm a');
-        slots.push({ time, displayTime, available: true });
+        
+        // For longer appointments, show duration in the display time
+        // No duration display needed
+        const displayWithDuration = displayTime;
+        
+        slots.push({ time, displayTime: displayWithDuration, available: true });
       }
     }
 
     // Afternoon slots (1PM - 5PM)
-    for (let hour = 13; hour < 17; hour++) {
+    // For longer appointments, we need to limit the latest start time
+    // to ensure the appointment ends before 5PM
+    const lastPossibleHour = Math.floor(17 - (duration / 60));
+    
+    for (let hour = 13; hour <= lastPossibleHour; hour++) {
       for (const minute of [0, 30]) {
+        // Calculate total minutes to make sure we don't go past 5PM
+        const totalMinutes = (hour * 60) + minute;
+        if (totalMinutes + duration > 17 * 60) {
+          continue; // Skip slots that would go past 5PM
+        }
+        
         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         const displayTime = format(new Date(`1970-01-01T${time}:00`), 'h:mm a');
-        slots.push({ time, displayTime, available: true });
+        
+        // For longer appointments, show duration in the display time
+        // No duration display needed
+        const displayWithDuration = displayTime;
+        
+        slots.push({ time, displayTime: displayWithDuration, available: true });
       }
     }
 
@@ -133,57 +158,37 @@ export function DateTimeSelection({
       // In case of error, return all slots as available for better user experience
       return slots;
     }
-  }, [dentistId, serviceId]);
+  }, [dentistId, serviceId, serviceDuration]);
 
   // Update time slots when date changes
   useEffect(() => {
     if (selectedDateObj) {
       setIsLoading(true);
 
-      // Function to check if a time slot would be unavailable due to service duration
-      const isSlotUnavailableDueToServiceDuration = (slot: TimeSlot, selectedSlotTime: string): boolean => {
-        if (!selectedSlotTime || !serviceDuration || serviceDuration <= 30) {
-          return false;
-        }
-
-        // Convert times to Date objects for comparison
-        const slotDate = new Date(`1970-01-01T${slot.time}:00`);
-        const selectedTimeDate = new Date(`1970-01-01T${selectedSlotTime}:00`);
-        
-        // Calculate end time of the appointment based on service duration
-        const appointmentEndTime = addMinutes(selectedTimeDate, serviceDuration);
-        
-        // Check if this slot falls within the appointment duration
-        // (but is not the starting slot itself)
-        return slot.time !== selectedSlotTime && 
-               slotDate > selectedTimeDate && 
-               slotDate < appointmentEndTime;
-      };
+      // For longer appointments, we won't disable adjacent slots anymore
+      // This is because we're already filtering time slots at the source based on duration
 
       // Fetch time slots from API
       const fetchTimeSlots = async () => {
         try {
+          // Make sure we have the required parameters
+          if (!dentistId || !serviceId) {
+            console.warn('Missing dentistId or serviceId, cannot fetch time slots');
+            setAvailableTimeSlots([]);
+            setIsLoading(false);
+            return;
+          }
+          
           console.log('Fetching time slots for date:', format(selectedDateObj, 'yyyy-MM-dd'));
           console.log('Using dentistId:', dentistId, 'and serviceId:', serviceId);
           
           const slots = await getFixedTimeSlots(selectedDateObj);
           console.log('Fetched slots before processing:', slots);
           
-          // Apply service duration to show which slots would be unavailable
-          if (selectedTime) {
-            const processedSlots = slots.map(slot => {
-              // If this slot would be blocked by the selected appointment due to service duration
-              if (isSlotUnavailableDueToServiceDuration(slot, selectedTime)) {
-                return { ...slot, available: false };
-              }
-              return slot;
-            });
-            console.log('Setting available time slots with service duration applied:', processedSlots);
-            setAvailableTimeSlots(processedSlots);
-          } else {
-            console.log('Setting available time slots without service duration:', slots);
-            setAvailableTimeSlots(slots);
-          }
+          // We don't need to disable adjacent slots anymore - we're already filtering at the source
+          // Just set the available time slots directly
+          console.log('Setting available time slots:', slots);
+          setAvailableTimeSlots(slots);
         } catch (error) {
           console.error('Error loading time slots:', error);
           setAvailableTimeSlots([]);
@@ -233,8 +238,8 @@ export function DateTimeSelection({
         </p>
       </div>
 
-      <div className="flex gap-4 h-auto">
-        <div>
+      <div className="flex flex-col md:flex-row md:gap-6 h-auto">
+        <div className="mb-6 md:mb-0">
           <h3 className="flex items-center mb-2 text-base font-medium">
             <CalendarIcon className="mr-2 w-4 h-4" />
             Select Date
@@ -244,13 +249,14 @@ export function DateTimeSelection({
               {dateError}
             </div>
           )}
-          <Calendar
-            mode="single"
-            selected={selectedDateObj}
-            onSelect={handleDateSelect}
-            disabled={disabledDays}
-            className="rounded-md border shadow"
-          />
+          <div className="max-w-full overflow-hidden mx-auto rounded-md border border-border shadow-sm">
+            <Calendar
+              selected={selectedDateObj}
+              onSelect={handleDateSelect}
+              disabled={disabledDays}
+              className="w-full"
+            />
+          </div>
         </div>
 
         <div className="w-full">
@@ -275,7 +281,7 @@ export function DateTimeSelection({
                         variant={selectedTime === slot.time ? "default" : "outline"}
                         onClick={() => handleTimeSelect(slot.time)}
                         disabled={!slot.available}
-                        className={!slot.available ? "opacity-50 cursor-not-allowed bg-gray-100" : ""}
+                        className={`${!slot.available ? "opacity-50 cursor-not-allowed bg-gray-100" : ""} hover:bg-primary hover:text-primary-foreground transition-colors`}
                       >
                         {!slot.available ? (
                           <span className="line-through text-muted-foreground font-bold">

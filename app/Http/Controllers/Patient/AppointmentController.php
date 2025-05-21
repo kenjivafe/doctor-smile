@@ -391,13 +391,29 @@ class AppointmentController extends Controller
 
         $timeSlots = [];
         $currentTime = $startTime->copy();
+        $lunchBreakStart = Carbon::parse($date . ' 12:00:00');
+        $lunchBreakEnd = Carbon::parse($date . ' 13:00:00');
 
-        while ($currentTime->addMinutes(30) <= $endTime) {
+        // Generate time slots in 30-minute increments
+        while ($currentTime < $endTime) {
+            // Skip lunch break hours (12 PM - 1 PM)
+            if ($currentTime >= $lunchBreakStart && $currentTime < $lunchBreakEnd) {
+                $currentTime = $lunchBreakEnd->copy();
+                continue;
+            }
+
             // Check if this slot is available
             $slotEndTime = $currentTime->copy()->addMinutes($duration);
 
             // Skip if slot end time exceeds dentist availability
             if ($slotEndTime > $endTime) {
+                $currentTime->addMinutes(30);
+                continue;
+            }
+
+            // Skip time slots that overlap with lunch break
+            if ($currentTime < $lunchBreakStart && $slotEndTime > $lunchBreakStart) {
+                $currentTime->addMinutes(30);
                 continue;
             }
 
@@ -411,6 +427,9 @@ class AppointmentController extends Controller
                 'time' => $currentTime->format('H:i'),
                 'available' => $isAvailable,
             ];
+
+            // Advance to the next time slot (30 minutes later)
+            $currentTime->addMinutes(30);
         }
 
         return response()->json([
