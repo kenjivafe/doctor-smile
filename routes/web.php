@@ -87,6 +87,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('book-appointment', [PatientAppointmentController::class, 'create'])->name('patient.book-appointment');
         Route::post('appointments', [PatientAppointmentController::class, 'store'])->name('patient.appointments.store');
         Route::get('appointments', [PatientAppointmentController::class, 'index'])->name('patient.appointments');
+        Route::get('appointments/{id}', [PatientAppointmentController::class, 'show'])->name('patient.appointments.show');
         Route::post('appointments/{id}/cancel', [PatientAppointmentController::class, 'cancel'])->name('patient.appointments.cancel');
         
         // API endpoint for available time slots

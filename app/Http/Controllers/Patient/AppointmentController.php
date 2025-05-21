@@ -58,6 +58,42 @@ class AppointmentController extends Controller
             'appointments' => $appointments,
         ]);
     }
+    
+    /**
+     * Display the specified appointment.
+     */
+    public function show(int $id)
+    {
+        $patient = Auth::user()->patient;
+
+        if (!$patient) {
+            return redirect()->route('dashboard')->with('error', 'Patient profile not found.');
+        }
+
+        // Find the appointment and ensure it belongs to the current patient
+        $appointment = Appointment::with(['dentist', 'dentalService'])
+            ->where('patient_id', $patient->id)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        // Format the appointment data for the frontend
+        $appointmentData = [
+            'id' => $appointment->id,
+            'dentist_name' => $appointment->dentist ? 'Dr. ' . $appointment->dentist->name : 'Unknown',
+            'service_name' => $appointment->dentalService->name ?? 'Unknown',
+            'appointment_datetime' => $appointment->appointment_datetime,
+            'status' => $appointment->status,
+            'duration_minutes' => $appointment->duration_minutes,
+            'cost' => number_format((float)$appointment->cost, 2),
+            'notes' => $appointment->notes,
+            'treatment_notes' => $appointment->treatment_notes,
+            'cancellation_reason' => $appointment->cancellation_reason,
+        ];
+
+        return Inertia::render('Patient/appointment-details', [
+            'appointment' => $appointmentData,
+        ]);
+    }
 
     /**
      * Show the form for creating a new appointment.
