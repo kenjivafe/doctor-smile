@@ -30,21 +30,18 @@ class AppointmentController extends Controller
             return redirect()->route('dashboard')->with('error', 'Patient profile not found.');
         }
 
+        // Get appointments with related data
         $appointments = Appointment::with(['dentist', 'dentalService'])
             ->where('patient_id', $patient->id)
             ->latest()
             ->get()
             ->map(function ($appointment) {
-                // Get dentist name safely
+                // Get dentist name from the relationship
                 $dentistName = 'Unknown';
+                
                 if ($appointment->dentist) {
-                    // Try to get from the dentist relationship first
-                    if (method_exists($appointment->dentist, 'user') && $appointment->dentist->user) {
-                        $dentistName = $appointment->dentist->user->name;
-                    } elseif (isset($appointment->dentist->name)) {
-                        // If dentist is actually a User model directly
-                        $dentistName = $appointment->dentist->name;
-                    }
+                    // Add the Dr. prefix for professional display
+                    $dentistName = 'Dr. ' . $appointment->dentist->name;
                 }
 
                 return [
