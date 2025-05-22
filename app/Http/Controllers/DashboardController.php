@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\DentalService;
-use App\Models\DentistAvailability;
 use App\Models\Patient;
 use App\Models\User;
 use Carbon\Carbon;
@@ -116,13 +115,16 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        // Availability for the next 7 days
-        $availabilities = DentistAvailability::where('dentist_id', $dentistId)
-            ->where('date', '>=', Carbon::now())
-            ->where('date', '<=', Carbon::now()->addDays(7))
-            ->orderBy('date')
-            ->orderBy('start_time')
-            ->get();
+        // Next 7 days for appointment scheduling
+        $nextSevenDays = [];
+        for ($i = 0; $i < 7; $i++) {
+            $date = Carbon::now()->addDays($i);
+            $nextSevenDays[] = [
+                'date' => $date->format('Y-m-d'),
+                'day_name' => $date->format('l'),
+                'formatted_date' => $date->format('M d, Y'),
+            ];
+        }
 
         // Appointment counts by status
         $appointmentCounts = Appointment::select('status', DB::raw('count(*) as count'))
@@ -134,7 +136,7 @@ class DashboardController extends Controller
         return Inertia::render('Dentist/dentist-dashboard', [
             'todaysAppointments' => $todaysAppointments,
             'upcomingAppointments' => $upcomingAppointments,
-            'availabilities' => $availabilities,
+            'nextSevenDays' => $nextSevenDays,
             'appointmentCounts' => $appointmentCounts,
             'userRole' => 'dentist',
         ]);

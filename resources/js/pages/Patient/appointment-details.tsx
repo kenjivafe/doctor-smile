@@ -7,7 +7,6 @@ import {
   Clock, 
   Stethoscope, 
   CreditCard, 
-  FileText, 
   AlertCircle,
   ArrowLeft
 } from 'lucide-react';
@@ -126,6 +125,7 @@ export default function AppointmentDetails() {
             )}
           </div>
           
+          {/* Appointment Details Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="flex items-start gap-3">
@@ -158,21 +158,11 @@ export default function AppointmentDetails() {
                 <CreditCard className="h-5 w-5 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium">Cost</p>
-                  <p className="text-muted-foreground">${appointment.cost}</p>
+                  <p className="text-muted-foreground">₱{appointment.cost}</p>
                 </div>
               </div>
               
-              {appointment.notes && (
-                <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Notes</p>
-                    <p className="text-muted-foreground">{appointment.notes}</p>
-                  </div>
-                </div>
-              )}
-              
-              {appointment.cancellation_reason && (
+              {appointment.status === 'cancelled' && appointment.cancellation_reason && (
                 <div className="flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
                   <div>
@@ -184,12 +174,24 @@ export default function AppointmentDetails() {
             </div>
           </div>
           
-          {appointment.treatment_notes && (
+          {/* Notes Section */}
+          {(appointment.notes || appointment.treatment_notes) && (
             <>
               <Separator className="my-6" />
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Treatment Notes</h3>
-                <p className="text-muted-foreground whitespace-pre-line">{appointment.treatment_notes}</p>
+              <div className="space-y-6">
+                {appointment.notes && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Notes</h3>
+                    <p className="text-muted-foreground whitespace-pre-line">{appointment.notes}</p>
+                  </div>
+                )}
+                
+                {appointment.treatment_notes && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Treatment Notes</h3>
+                    <p className="text-muted-foreground whitespace-pre-line">{appointment.treatment_notes}</p>
+                  </div>
+                )}
               </div>
             </>
           )}
