@@ -19,14 +19,16 @@ class AppointmentController extends Controller
      */
     public function index()
     {
-        $dentistId = Auth::id();
-
+        $userId = Auth::id();
+        
         // Get appointments with related data
+        // The dentist_id in appointments table references the users table directly
         $appointments = Appointment::with(['patient.user', 'dentalService'])
-            ->where('dentist_id', $dentistId)
+            ->where('dentist_id', $userId)
             ->latest()
-            ->get()
-            ->map(function ($appointment) {
+            ->get();
+        
+        $appointments = $appointments->map(function ($appointment) {
                 // Get patient name from the relationship
                 $patientName = 'Unknown';
                 
@@ -38,6 +40,7 @@ class AppointmentController extends Controller
                     'id' => $appointment->id,
                     'patient_name' => $patientName,
                     'service_name' => $appointment->dentalService->name ?? 'Unknown',
+                    'dental_service_id' => $appointment->dental_service_id,
                     'appointment_datetime' => $appointment->appointment_datetime,
                     'status' => $appointment->status,
                     'duration_minutes' => $appointment->duration_minutes,
@@ -55,11 +58,12 @@ class AppointmentController extends Controller
      */
     public function show(int $id)
     {
-        $dentistId = Auth::id();
-
+        $userId = Auth::id();
+        
         // Find the appointment and ensure it belongs to the current dentist
+        // The dentist_id in appointments table references the users table directly
         $appointment = Appointment::with(['patient.user', 'dentalService'])
-            ->where('dentist_id', $dentistId)
+            ->where('dentist_id', $userId)
             ->where('id', $id)
             ->firstOrFail();
 
@@ -123,6 +127,82 @@ class AppointmentController extends Controller
         return redirect()->route('dentist.appointments.show', $appointment->id)
             ->with('success', 'Appointment status updated successfully.');
     }
+    
+    /**
+     * Confirm an appointment.
+     */
+    public function confirm(int $id)
+    {
+        $dentistId = Auth::id();
+        
+        // Find the appointment and ensure it belongs to the current dentist
+        $appointment = Appointment::where('dentist_id', $dentistId)
+            ->where('id', $id)
+            ->firstOrFail();
+            
+        // Update the appointment status to confirmed
+        $appointment->status = 'confirmed';
+        $appointment->save();
+        
+        return redirect()->route('dentist.appointments')
+            ->with('success', 'Appointment confirmed successfully.');
+    }
+    
+    /**
+     * Complete an appointment.
+     */
+    public function complete(int $id)
+    {
+        $dentistId = Auth::id();
+        
+        // Find the appointment and ensure it belongs to the current dentist
+        $appointment = Appointment::where('dentist_id', $dentistId)
+            ->where('id', $id)
+            ->firstOrFail();
+            
+        // Update the appointment status to completed
+        $appointment->status = 'completed';
+        $appointment->save();
+        
+        return redirect()->route('dentist.appointments')
+            ->with('success', 'Appointment marked as completed.');
+    }
+    
+    /**
+     * Cancel (reject) an appointment.
+     */
+    public function cancel(int $id, Request $request)
+    {
+        $dentistId = Auth::id();
+        
+        // Validate the request if there's a cancellation reason
+        if ($request->has('cancellation_reason')) {
+            $validator = Validator::make($request->all(), [
+                'cancellation_reason' => 'required|string|max:255',
+            ]);
+            
+            if ($validator->fails()) {
+                return back()->withErrors($validator)->withInput();
+            }
+        }
+        
+        // Find the appointment and ensure it belongs to the current dentist
+        $appointment = Appointment::where('dentist_id', $dentistId)
+            ->where('id', $id)
+            ->firstOrFail();
+            
+        // Update the appointment status to cancelled
+        $appointment->status = 'cancelled';
+        
+        if ($request->has('cancellation_reason')) {
+            $appointment->cancellation_reason = $request->cancellation_reason;
+        }
+        
+        $appointment->save();
+        
+        return redirect()->route('dentist.appointments')
+            ->with('success', 'Appointment cancelled successfully.');
+    }
 
     /**
      * Update treatment notes for the appointment.
@@ -183,13 +263,15 @@ class AppointmentController extends Controller
         $newAppointment->dental_service_id = $appointment->dental_service_id;
         $newAppointment->appointment_datetime = $request->appointment_datetime;
         $newAppointment->duration_minutes = $request->duration_minutes;
-        $newAppointment->status = 'pending';
+        $newAppointment->status = 'scheduled';
         $newAppointment->notes = $request->notes ?? 'Rescheduled from appointment #' . $appointment->id;
         $newAppointment->cost = $appointment->cost;
         $newAppointment->save();
         
         // Update the original appointment
-        $appointment->status = 'rescheduled';
+        // Using 'cancelled' status since 'rescheduled' is not in the allowed enum values
+        $appointment->status = 'cancelled';
+        $appointment->cancellation_reason = 'Rescheduled to ' . date('Y-m-d H:i', strtotime($request->appointment_datetime));
         $appointment->save();
         
         return redirect()->route('dentist.appointments.show', $newAppointment->id)

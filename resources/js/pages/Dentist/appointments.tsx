@@ -2,10 +2,17 @@ import { PageTemplate } from '@/components/page-template';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { CalendarClock, Clock, Info, CheckCircle, XCircle, Edit } from 'lucide-react';
+import { useState } from 'react';
+import { CalendarClock, Clock, Info, CheckCircle, XCircle, Edit, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@/components/ui/link';
 import { Card } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { RescheduleDialog } from '@/components/appointment/reschedule-dialog';
 import {
   Table,
   TableBody,
@@ -20,8 +27,9 @@ interface Appointment {
   id: number;
   patient_name: string;
   service_name: string;
+  dental_service_id: number;
   appointment_datetime: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rescheduled';
+  status: 'pending' | 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'rescheduled' | 'no_show';
   duration_minutes: number;
   cost: string;
 }
@@ -49,6 +57,7 @@ const getStatusBadgeVariant = (status: string) => {
     case 'rescheduled':
       return 'warning';
     case 'pending':
+    case 'scheduled': // Handle scheduled status same as pending
     default:
       return 'outline';
   }
@@ -60,7 +69,14 @@ const formatStatus = (status: string) => {
 };
 
 export default function Appointments() {
-  const { appointments = [] } = usePage().props as unknown as AppointmentsProps;
+  const { appointments = [], auth } = usePage().props as unknown as AppointmentsProps & { auth: { user: { id: number } } };
+  const [isRescheduleDialogOpen, setIsRescheduleDialogOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+
+  const handleReschedule = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsRescheduleDialogOpen(true);
+  };
 
   return (
     <>
@@ -124,51 +140,75 @@ export default function Appointments() {
                       <div className="flex justify-end gap-2">
                         <Link
                           variant="outline"
-                          size="sm"
                           href={`/dentist/appointments/${appointment.id}`}
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0"
                         >
                           <Info className="h-4 w-4" />
                           <span className="sr-only">Details</span>
                         </Link>
                         
-                        {appointment.status === 'pending' && (
-                          <>
-                            <Link
-                              variant="default"
-                              size="sm"
-                              href={`/dentist/appointments/${appointment.id}/confirm`}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Confirm
-                            </Link>
-                            <Link
-                              variant="outline"
-                              size="sm"
-                              href={`/dentist/appointments/${appointment.id}/reschedule`}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Reschedule
-                            </Link>
-                            <Link
-                              variant="destructive"
-                              size="sm"
-                              href={`/dentist/appointments/${appointment.id}/cancel`}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
-                            </Link>
-                          </>
-                        )}
-                        
-                        {appointment.status === 'confirmed' && (
-                          <Link
-                            variant="secondary"
-                            size="sm"
-                            href={`/dentist/appointments/${appointment.id}/complete`}
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Complete
-                          </Link>
+                        {(appointment.status === 'scheduled' || appointment.status === 'confirmed') && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Actions</span>
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-white p-2">
+                            {appointment.status === 'scheduled' && (
+                              <>
+                                <div className="mb-1">
+                                  <Link 
+                                    href={`/dentist/appointments/${appointment.id}/confirm`}
+                                    className="flex items-center justify-between text-emerald-600 hover:text-white w-full bg-white hover:bg-emerald-600 py-2 px-2 rounded"
+                                  >
+                                    <div className="flex-grow text-left text-sm font-medium">Confirm</div>
+                                    <div className="flex items-center">
+                                      <CheckCircle className="h-4 w-4" />
+                                    </div>
+                                  </Link>
+                                </div>
+                                <div className="my-1">
+                                  <button 
+                                    onClick={() => handleReschedule(appointment)}
+                                    className="flex items-center justify-between text-blue-600 hover:text-white w-full bg-white hover:bg-blue-600 py-2 px-2 rounded"
+                                  >
+                                    <div className="flex-grow text-left text-sm font-medium">Reschedule</div>
+                                    <div className="flex items-center">
+                                      <Edit className="h-4 w-4" />
+                                    </div>
+                                  </button>
+                                </div>
+                                <div className="mt-1">
+                                  <Link 
+                                    href={`/dentist/appointments/${appointment.id}/cancel`} 
+                                    className="flex items-center justify-between text-red-600 hover:text-white w-full bg-white hover:bg-red-600 py-2 px-2 rounded"
+                                  >
+                                    <div className="flex-grow text-left text-sm font-medium">Reject</div>
+                                    <div className="flex items-center">
+                                      <XCircle className="h-4 w-4" />
+                                    </div>
+                                  </Link>
+                                </div>
+                              </>
+                            )}
+                            
+                            {appointment.status === 'confirmed' && (
+                              <div>
+                                <Link 
+                                  href={`/dentist/appointments/${appointment.id}/complete`}
+                                  className="flex items-center justify-between text-emerald-600 hover:text-white w-full bg-white hover:bg-emerald-600 py-2 px-2 rounded"
+                                >
+                                  <div className="flex-grow text-left text-sm font-medium">Complete</div>
+                                  <div className="flex items-center">
+                                    <CheckCircle className="h-4 w-4" />
+                                  </div>
+                                </Link>
+                              </div>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         )}
                       </div>
                     </TableCell>
@@ -179,6 +219,17 @@ export default function Appointments() {
           )}
         </Card>
       </PageTemplate>
+
+      {selectedAppointment && (
+        <RescheduleDialog
+          isOpen={isRescheduleDialogOpen}
+          onClose={() => setIsRescheduleDialogOpen(false)}
+          appointmentId={selectedAppointment.id}
+          serviceDuration={selectedAppointment.duration_minutes}
+          dentistId={auth.user.id}
+          serviceId={selectedAppointment.dental_service_id}
+        />
+      )}
     </>
   );
 }

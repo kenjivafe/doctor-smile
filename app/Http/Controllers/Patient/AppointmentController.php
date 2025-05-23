@@ -114,23 +114,26 @@ class AppointmentController extends Controller
                 ];
             });
 
+        // Get all users with dentist role
+        // Explicitly exclude admin users (role = 'admin')
         $dentists = User::where('role', 'dentist')
-            ->with('dentist')
+            ->where('id', '!=', 1) // Exclude user_id 1 (admin)
             ->get()
             ->map(function ($user) {
-                // Add null check for dentist relationship
-                $dentist = $user->dentist ?? null;
                 return [
-                    'id' => $dentist ? $dentist->id : null,
+                    'id' => $user->id, // Use user_id instead of dentist.id to match migration constraint
                     'name' => $user->name,
-                    'specialty' => $dentist ? $dentist->specialty : null,
+                    'specialty' => 'General Dentistry', // Default specialty if not specified
                     'avatar' => $user->avatar_path,
                 ];
             })
-            ->filter(function ($dentist) {
-                return $dentist['id'] !== null;
-            })
             ->values();
+            
+        // Log the dentists for debugging
+        \Illuminate\Support\Facades\Log::info('Available dentists for booking', [
+            'count' => $dentists->count(),
+            'dentists' => $dentists
+        ]);
 
         return Inertia::render('Patient/book-appointment', [
             'availableServices' => $dentalServices,
@@ -254,7 +257,7 @@ class AppointmentController extends Controller
                 $appointment->dental_service_id = $request->dental_service_id;
                 $appointment->appointment_datetime = $appointmentDatetime;
                 $appointment->duration_minutes = $dentalService->duration_minutes;
-                $appointment->status = 'scheduled'; // Using 'scheduled' to match database enum
+                $appointment->status = 'scheduled'; // Using 'scheduled' to match database enum values
                 $appointment->notes = $request->notes;
                 $appointment->cost = $dentalService->price; // Set the cost from the dental service price
 
@@ -387,9 +390,16 @@ class AppointmentController extends Controller
     public function getAvailableTimeSlots(Request $request)
     {
         $request->validate([
-            'dentist_id' => 'required|exists:dentists,id',
+            'dentist_id' => 'required|exists:users,id',
             'service_id' => 'required|exists:dental_services,id',
             'date' => 'required|date|after:yesterday',
+        ]);
+        
+        // Log the request parameters for debugging
+        Log::info('Time slots request parameters', [
+            'dentist_id' => $request->dentist_id,
+            'service_id' => $request->service_id,
+            'date' => $request->date
         ]);
 
         $dentistId = $request->dentist_id;

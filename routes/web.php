@@ -61,18 +61,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::get('appointments/{id}', 'show')->name('dentist.appointments.show');
             Route::post('appointments/{id}/update-status', 'updateStatus')->name('dentist.appointments.update-status');
             Route::post('appointments/{id}/update-notes', 'updateNotes')->name('dentist.appointments.update-notes');
-            Route::get('appointments/{id}/confirm', function ($id) {
-                return Inertia::render('Dentist/confirm-appointment', ['id' => $id]);
-            })->name('dentist.appointments.confirm');
-            Route::get('appointments/{id}/complete', function ($id) {
-                return Inertia::render('Dentist/complete-appointment', ['id' => $id]);
-            })->name('dentist.appointments.complete');
+            
+            // Direct action routes
+            Route::get('appointments/{id}/confirm', 'confirm')->name('dentist.appointments.confirm');
+            Route::get('appointments/{id}/complete', 'complete')->name('dentist.appointments.complete');
+            Route::get('appointments/{id}/cancel', 'cancel')->name('dentist.appointments.cancel');
+            
+            // Form view routes
             Route::get('appointments/{id}/reschedule', function ($id) {
                 return Inertia::render('Dentist/reschedule-appointment', ['id' => $id]);
             })->name('dentist.appointments.reschedule');
-            Route::get('appointments/{id}/cancel', function ($id) {
-                return Inertia::render('Dentist/cancel-appointment', ['id' => $id]);
-            })->name('dentist.appointments.cancel');
+            
             Route::post('appointments/{id}/suggest-new-time', 'suggestNewTime')->name('dentist.appointments.suggest-new-time');
         });
 

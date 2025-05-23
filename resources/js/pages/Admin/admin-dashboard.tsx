@@ -57,6 +57,12 @@ interface AdminDashboardProps extends PageProps {
         count: number;
     }>;
     userRole: string;
+    auth?: {
+        user?: {
+            name: string;
+            email: string;
+        };
+    };
 }
 
 // Define chart data types
@@ -101,8 +107,18 @@ export default function AdminDashboard() {
         stats,
         recentAppointments,
         statusDistribution,
-        dentistWorkload
+        dentistWorkload,
+        auth
     } = usePage<AdminDashboardProps>().props;
+    
+    // Get admin name from auth - ensure no Dr. prefix is added for admin users
+    let adminName = auth?.user?.name || 'Admin';
+    
+    // Explicitly strip any 'Dr.' prefix that might be added elsewhere
+    adminName = adminName.replace(/^Dr\.\s*/i, '');
+    
+    // Debug
+    console.log('Admin name before display:', adminName);
 
     // Add default values to prevent errors
     const safeStats = {
@@ -233,10 +249,14 @@ export default function AdminDashboard() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Dashboard" />
             <div className="flex flex-col flex-1 gap-4 p-4 h-full">
-                <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
-                <p className="text-muted-foreground">
-                    Welcome to the Doctor Smile admin dashboard. Manage your dental clinic here.
-                </p>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Welcome back, {adminName.replace(/^Dr\.\s*/i, '')}</h2>
+                        <p className="text-muted-foreground">
+                            Manage your dental clinic here.
+                        </p>
+                    </div>
+                </div>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
