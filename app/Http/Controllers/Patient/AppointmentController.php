@@ -7,6 +7,8 @@ use App\Models\Appointment;
 use App\Models\DentalService;
 use App\Models\Dentist;
 use App\Models\DentistAvailability;
+use App\Models\DentistBlockedDate;
+use App\Models\DentistWorkingHour;
 use App\Models\Patient;
 use App\Models\User;
 use Carbon\Carbon;
@@ -305,49 +307,83 @@ class AppointmentController extends Controller
      */
     private function isDentistAvailable($dentistId, $dateTime, $duration)
     {
-        // Check if time is within office hours (Mon-Sat, 9AM-12PM and 1PM-5PM)
-        $dayOfWeek = $dateTime->dayOfWeek;
-        $hour = $dateTime->hour;
-
-        // Log the attempted booking time
-        Log::info('Checking dentist availability', [
-            'dentist_id' => $dentistId,
-            'date_time' => $dateTime->toDateTimeString(),
-            'day_of_week' => $dayOfWeek,
-            'hour' => $hour,
-            'duration' => $duration
-        ]);
-
-        // Sunday (0) is closed
-        if ($dayOfWeek === 0) {
-            Log::warning('Appointment rejected: Sunday is not available');
-            return false;
-        }
-
-        // Check if within business hours (9AM-12PM, 1PM-5PM)
-        if (($hour < 9 || $hour >= 17) || ($hour >= 12 && $hour < 13)) {
-            Log::warning('Appointment rejected: Outside business hours');
-            return false;
-        }
-
-        // For the fixed time slots approach, we'll just check if there are any
-        // overlapping appointments already scheduled
         $date = $dateTime->toDateString();
         $startTime = $dateTime->format('H:i:s');
+        $dayOfWeek = $dateTime->dayOfWeek; // 0 (Sunday) to 6 (Saturday)
 
         // Calculate the end time by adding the service duration to the start time
         $appointmentEndDateTime = $dateTime->copy()->addMinutes($duration);
         $endTime = $appointmentEndDateTime->format('H:i:s');
 
-        // Log the availability check
-        Log::info('Dentist availability check result', [
+        Log::info('Checking dentist availability', [
             'dentist_id' => $dentistId,
-            'start_time' => $dateTime->toDateTimeString(),
-            'end_time' => $appointmentEndDateTime->toDateTimeString(),
-            'is_available' => true // Default value, will be changed if not available
+            'date' => $date,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'duration' => $duration
         ]);
 
-        // Check for overlapping appointments
+        // Step 1: Check if the dentist has working hours for this day of the week
+        $workingHours = DentistWorkingHour::where('dentist_id', $dentistId)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$workingHours) {
+            Log::info('Dentist is not working on this day', [
+                'dentist_id' => $dentistId,
+                'day_of_week' => $dayOfWeek,
+                'date' => $date
+            ]);
+            return false; // Dentist doesn't work on this day
+        }
+
+        // Step 2: Check if the appointment time is within the dentist's working hours
+        $workingStartTime = $workingHours->start_time;
+        $workingEndTime = $workingHours->end_time;
+
+        if ($startTime < $workingStartTime || $endTime > $workingEndTime) {
+            Log::info('Appointment time is outside working hours', [
+                'dentist_id' => $dentistId,
+                'appointment_start' => $startTime,
+                'appointment_end' => $endTime,
+                'working_start' => $workingStartTime,
+                'working_end' => $workingEndTime
+            ]);
+            return false; // Appointment time is outside working hours
+        }
+        
+        // Step 3: Check if the date is blocked
+        $blockedDate = DentistBlockedDate::where('dentist_id', $dentistId)
+            ->whereDate('blocked_date', $date)
+            ->where(function ($query) use ($startTime, $endTime) {
+                // Check if the appointment overlaps with any blocked time
+                $query->where(function ($q) use ($startTime, $endTime) {
+                    // Blocked time starts during our appointment
+                    $q->where('start_time', '>=', $startTime)
+                      ->where('start_time', '<', $endTime);
+                })->orWhere(function ($q) use ($startTime, $endTime) {
+                    // Blocked time ends during our appointment
+                    $q->where('end_time', '>', $startTime)
+                      ->where('end_time', '<=', $endTime);
+                })->orWhere(function ($q) use ($startTime, $endTime) {
+                    // Blocked time encompasses our appointment
+                    $q->where('start_time', '<=', $startTime)
+                      ->where('end_time', '>=', $endTime);
+                })->orWhereNull('start_time')->orWhereNull('end_time'); // Full day block
+            })
+            ->exists();
+
+        if ($blockedDate) {
+            Log::info('Date is blocked for this dentist', [
+                'dentist_id' => $dentistId,
+                'date' => $date
+            ]);
+            return false; // Date is blocked
+        }
+
+        // Step 4: Check for overlapping appointments
         $overlappingAppointments = Appointment::where('dentist_id', $dentistId)
             ->whereDate('appointment_datetime', $date)
             ->where('status', '!=', 'cancelled')
@@ -374,6 +410,7 @@ class AppointmentController extends Controller
             ->exists();
 
         $isAvailable = !$overlappingAppointments;
+        
         Log::info('Dentist availability check result', [
             'dentist_id' => $dentistId,
             'start_time' => $dateTime->toDateTimeString(),
@@ -383,7 +420,7 @@ class AppointmentController extends Controller
 
         return $isAvailable;
     }
-
+    
     /**
      * API endpoint to get available time slots for a specific date and dentist
      */

@@ -20,12 +20,14 @@ Doctor Smile is a modern dental clinic appointment system designed to streamline
 - MySQL database
 - Basic Auth + Role-Based Access Control (Admin, Dentist, Patient)
 - WebSockets for real-time updates
+- Inertia.js for frontend-backend integration
 
 ### Frontend
 - React with TypeScript
-- ShadCN UI + Tailwind CSS
+- ShadCN UI + Tailwind CSS v4.0.0
 - Lucide React icons
 - Mobile-friendly & responsive design
+- Nunito font from Google Fonts
 
 ## Current Development Status
 
@@ -33,18 +35,27 @@ Doctor Smile is a modern dental clinic appointment system designed to streamline
 - ✅ Basic Laravel 12 with React setup
 - ✅ User authentication system implementation
 - ✅ Role-based access control (Admin, Dentist, Patient)
-- ✅ Role-specific dashboard components
+- ✅ Role-specific middleware for route protection
+- ✅ Role-specific dashboard components with real data
+- ✅ Database schema implementation (User, Patient, Appointment, DentalService)
+- ✅ Models and relationships development
+- ✅ User seeding with admin and dentist test accounts
+- ✅ Custom Nunito font integration
+- ✅ Patient profile completion and management
+- ✅ Patient appointment booking interface
+- ✅ Dentist working hours management
+- ✅ Appointment collision prevention
+- ✅ Integration of appointment booking with dentist's schedule
 
 ### In Progress
-- 🔄 Database schema implementation
-- 🔄 Models and relationships development
-- 🔄 Appointment management functionality
+- 🔄 Dentist appointment approval workflow
+- 🔄 Appointment rescheduling functionality
+- 🔄 Real-time updates via WebSockets
 
 ### Planned
-- 📝 Patient appointment booking interface
-- 📝 Dentist appointment approval workflow
 - 📝 Google Calendar integration
 - 📝 Email reminder system
+- 📝 Patient appointment cancellation system
 
 ## Installation (Development Environment)
 
@@ -82,23 +93,43 @@ php artisan db:seed
 npm run dev
 ```
 
+## Default Users
+
+The database seeder creates the following test accounts:
+
+### Admin User
+- Email: admin@doctorsmile.com
+- Password: password
+
+### Dentist Users
+- Dr. John Smith (john.smith@doctorsmile.com) - Password: password
+- Dr. Sarah Johnson (sarah.johnson@doctorsmile.com) - Password: password
+- Dr. Michael Chen (michael.chen@doctorsmile.com) - Password: password
+- Dr. Emily Rodriguez (emily.rodriguez@doctorsmile.com) - Password: password
+
 ## Features & Roadmap
 
-### Core Features (In Development)
+### Core Features
 - Appointment Management
   - Patients select date/time
   - Dentists approve, suggest a new time, or reject
   - Patients confirm or cancel suggested time
-  
+  - Payment happens when patient confirms
 
 - Time Availability & Scheduling
   - Dentists manually set available working hours
   - Support for appointment reallocation
   - Google Calendar integration
 
+- Patient Record Management
+  - Patient profiles with medical history
+  - Appointment history tracking
+  - Balance management
+
 - Analytics & Decision Support
   - Admin dashboard with insights
   - Data-driven recommendations
+  - Appointment trends visualization
 
 ## License
 This project is licensed under the [MIT License](LICENSE).

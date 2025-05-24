@@ -75,9 +75,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::post('appointments/{id}/suggest-new-time', 'suggestNewTime')->name('dentist.appointments.suggest-new-time');
         });
 
-        Route::get('schedule', function () {
-            return Inertia::render('Dentist/schedule');
-        })->name('dentist.schedule');
+        // Schedule routes
+        Route::controller(\App\Http\Controllers\Dentist\ScheduleController::class)->group(function () {
+            Route::get('schedule', 'index')->name('dentist.schedule');
+            Route::post('schedule/working-hours', 'storeWorkingHour')->name('dentist.schedule.store-working-hour');
+            Route::put('schedule/working-hours/{id}', 'updateWorkingHour')->name('dentist.schedule.update-working-hour');
+            Route::delete('schedule/working-hours/{id}', 'deleteWorkingHour')->name('dentist.schedule.delete-working-hour');
+            Route::post('schedule/blocked-dates', 'storeBlockedDate')->name('dentist.schedule.store-blocked-date');
+            Route::delete('schedule/blocked-dates/{id}', 'deleteBlockedDate')->name('dentist.schedule.delete-blocked-date');
+        });
 
         Route::get('patients', function () {
             return Inertia::render('Dentist/patients');

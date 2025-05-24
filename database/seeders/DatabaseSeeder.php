@@ -7,6 +7,7 @@ use Database\Seeders\UserSeeder;
 use Database\Seeders\PatientSeeder;
 use Database\Seeders\DentistSeeder;
 use Database\Seeders\DentistAvailabilitySeeder;
+use Database\Seeders\DentistWorkingHourSeeder;
 use Database\Seeders\DentalServiceSeeder;
 use Database\Seeders\AppointmentSeeder;
 
@@ -22,7 +23,8 @@ class DatabaseSeeder extends Seeder
             DentistSeeder::class,         // Run second: creates dentist profiles for dentist users
             PatientSeeder::class,         // Run third: creates patients (depends on users)
             DentistAvailabilitySeeder::class, // Run fourth: creates dentist availabilities (depends on dentist users)
-            DentalServiceSeeder::class,   // Run fifth: creates dental services
+            DentistWorkingHourSeeder::class, // Run fifth: creates default working hours for dentists
+            DentalServiceSeeder::class,   // Run sixth: creates dental services
             AppointmentSeeder::class,     // Run last: creates appointments (depends on patients, dentists, and services)
         ]);
     }
