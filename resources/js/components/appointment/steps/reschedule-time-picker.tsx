@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, Clock } from 'lucide-react';
 
-interface DateTimeSelectionProps {
+interface RescheduleTimePickerProps {
   selectedDate?: string;
   selectedTime?: string;
   onSelectDate: (date: string) => void;
@@ -23,7 +23,7 @@ interface TimeSlot {
   available: boolean;
 }
 
-export function DateTimeSelection({
+export function RescheduleTimePicker({
   selectedDate,
   selectedTime,
   onSelectDate,
@@ -33,7 +33,7 @@ export function DateTimeSelection({
   serviceDuration,
   dentistId,
   serviceId,
-}: DateTimeSelectionProps) {
+}: RescheduleTimePickerProps) {
   const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(
     selectedDate ? new Date(selectedDate) : undefined
   );
@@ -226,90 +226,55 @@ export function DateTimeSelection({
 
   return (
     <div className="space-y-4">
-    {timeError && (
-      <div className="p-3 mt-4 text-sm font-medium text-white rounded-md shadow bg-destructive">
-        {timeError}
-      </div>
-    )}
-      <div>
-        <h2 className="mb-2 text-xl font-semibold">Select Date & Time</h2>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="w-full">
-        <h3 className="flex items-center mb-2 text-base font-medium">
-          <CalendarIcon className="mr-2 w-4 h-4" />
-          Select Date
-        </h3>
-        {dateError && (
-          <div className="mb-2 text-sm text-destructive">{dateError}</div>
-        )}
-        <div className="max-w-full overflow-hidden mx-auto rounded-md border border-border shadow-sm h-[336px] flex items-center justify-center">
-          <Calendar
-            selected={selectedDateObj}
-            onSelect={handleDateSelect}
-            disabled={disabledDays}
-            className="w-full h-full"
-            mode="single"
-          />
+      {timeError && (
+        <div className="p-3 mt-4 text-sm font-medium text-white rounded-md shadow bg-destructive">
+          {timeError}
         </div>
-      </div>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="w-full">
+          <h3 className="flex items-center mb-2 text-base font-medium">
+            <CalendarIcon className="mr-2 w-4 h-4" />
+            Select Date
+          </h3>
+          {dateError && (
+            <div className="mb-2 text-sm text-destructive">{dateError}</div>
+          )}
+          <div className="max-w-full overflow-hidden mx-auto rounded-md border border-border shadow-sm h-[330px] flex items-center justify-center">
+            <Calendar
+              selected={selectedDateObj}
+              onSelect={handleDateSelect}
+              disabled={disabledDays}
+              className="w-full h-full"
+              mode="single"
+            />
+          </div>
+        </div>
 
-      <div className="w-full">
-        <h3 className="flex items-center mb-2 text-base font-medium">
-          <Clock className="mr-2 w-4 h-4" />
-          Select Time
-        </h3>
-        <Card className="flex flex-col p-4 rounded-md border shadow">
-          {selectedDateObj ? (
-            <div className="grid overflow-y-auto flex-grow grid-cols-2 gap-2 sm:grid-cols-3">
-              {isLoading ? (
-                <div className="flex col-span-full justify-center items-center py-4 h-full text-center text-muted-foreground">
-                  Loading available time slots...
-                </div>
-              ) : (
-                availableTimeSlots.length > 0 ? (
-                  availableTimeSlots.map((slot) => {
-                  console.log(`Rendering slot ${slot.time}: available=${slot.available}`);
-                  return (
-                    <Button
-                      key={slot.time}
-                      variant={selectedTime === slot.time ? "default" : "outline"}
-                      onClick={() => handleTimeSelect(slot.time)}
-                      disabled={!slot.available}
-                      className={`${!slot.available ? "opacity-50 cursor-not-allowed bg-gray-100" : ""} hover:bg-primary hover:text-primary-foreground transition-colors`}
-                    >
-                      {!slot.available ? (
-                        <span className="line-through text-muted-foreground font-bold">
-                          <s>{slot.displayTime}</s>
-                        </span>
-                      ) : (
-                        slot.displayTime
-                      )}
-                    </Button>
-                  );
-                })
-                ) : (
+        <div className="w-full">
+          <h3 className="flex items-center mb-2 text-base font-medium">
             <Clock className="mr-2 w-4 h-4" />
             Select Time
           </h3>
-          <Card className="flex flex-col p-4 rounded-md border shadow">
+          <Card className="flex flex-col p-4 rounded-md border shadow md:h-[330px] h-auto">
             {selectedDateObj ? (
-              <div className="grid overflow-y-auto flex-grow grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="grid overflow-y-auto flex-grow grid-cols-2 gap-3 sm:grid-cols-3 h-full">
                 {isLoading ? (
                   <div className="flex col-span-full justify-center items-center py-4 h-full text-center text-muted-foreground">
                     Loading available time slots...
                   </div>
                 ) : (
                   availableTimeSlots.length > 0 ? (
-                    availableTimeSlots.map((slot) => {
-                    console.log(`Rendering slot ${slot.time}: available=${slot.available}`);
-                    return (
+                    availableTimeSlots.map((slot) => (
                       <Button
                         key={slot.time}
                         variant={selectedTime === slot.time ? "default" : "outline"}
                         onClick={() => handleTimeSelect(slot.time)}
                         disabled={!slot.available}
-                        className={`${!slot.available ? "opacity-50 cursor-not-allowed bg-gray-100" : ""} hover:bg-primary hover:text-primary-foreground transition-colors`}
+                        className={`${!slot.available ? "opacity-50 cursor-not-allowed bg-gray-100" : ""} 
+                        hover:bg-primary hover:text-primary-foreground transition-colors 
+                        h-12 flex items-center justify-center`}
                       >
                         {!slot.available ? (
                           <span className="line-through text-muted-foreground font-bold">
@@ -319,8 +284,7 @@ export function DateTimeSelection({
                           slot.displayTime
                         )}
                       </Button>
-                    );
-                  })
+                    ))
                   ) : (
                     <div className="flex col-span-full justify-center items-center py-4 h-full text-center text-muted-foreground">
                       No available time slots for this day

@@ -34,7 +34,7 @@ class AppointmentSeeder extends Seeder
     }
     
     /**
-     * Create past appointments (completed, cancelled, no_show)
+     * Create past appointments (completed, cancelled)
      */
     private function createPastAppointments($patients, $dentists, $services): void
     {
@@ -62,21 +62,22 @@ class AppointmentSeeder extends Seeder
                 ]);
         }
         
-        // Create 3 no_show appointments in the past month
+        // Create 3 additional cancelled appointments in the past month (former no_shows)
         foreach (range(1, 3) as $index) {
             Appointment::factory()
+                ->cancelled()
                 ->create([
                     'patient_id' => $patients->random()->id,
                     'dentist_id' => $dentists->random()->id,
                     'dental_service_id' => $services->random()->id,
                     'appointment_datetime' => Carbon::now()->subDays(rand(1, 30))->setTime(rand(9, 16), [0, 15, 30, 45][rand(0, 3)]),
-                    'status' => 'no_show',
+                    'cancellation_reason' => 'Patient did not show up',
                 ]);
         }
     }
     
     /**
-     * Create appointments for today (scheduled, confirmed)
+     * Create appointments for today (pending, confirmed)
      */
     private function createTodayAppointments($patients, $dentists, $services): void
     {
@@ -129,14 +130,14 @@ class AppointmentSeeder extends Seeder
     }
     
     /**
-     * Create upcoming appointments (scheduled, confirmed)
+     * Create upcoming appointments (pending, confirmed)
      */
     private function createUpcomingAppointments($patients, $dentists, $services): void
     {
-        // Create 8 scheduled (pending) appointments in the next two weeks
+        // Create 8 pending appointments in the next two weeks
         foreach (range(1, 8) as $index) {
             Appointment::factory()
-                ->scheduled()
+                ->pending()
                 ->create([
                     'patient_id' => $patients->random()->id,
                     'dentist_id' => $dentists->random()->id,

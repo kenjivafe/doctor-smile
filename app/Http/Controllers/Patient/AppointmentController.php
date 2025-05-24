@@ -259,7 +259,7 @@ class AppointmentController extends Controller
                 $appointment->dental_service_id = $request->dental_service_id;
                 $appointment->appointment_datetime = $appointmentDatetime;
                 $appointment->duration_minutes = $dentalService->duration_minutes;
-                $appointment->status = 'scheduled'; // Using 'scheduled' to match database enum values
+                $appointment->status = 'pending'; // Initial status is pending until dentist reviews
                 $appointment->notes = $request->notes;
                 $appointment->cost = $dentalService->price; // Set the cost from the dental service price
 
@@ -532,23 +532,80 @@ class AppointmentController extends Controller
             return back()->with('error', 'Appointment not found.');
         }
 
-        // Only allow cancellation of pending or approved appointments
-        if (!in_array($appointment->status, ['pending', 'approved'])) {
+        // Only allow cancellation of pending, suggested, or confirmed appointments
+        if (!in_array($appointment->status, ['pending', 'suggested', 'confirmed'])) {
             return back()->with('error', 'This appointment cannot be cancelled.');
         }
 
-        // Check if appointment is within 24 hours - don't allow cancellation if so
+        // No time restriction for cancellations
         $appointmentTime = Carbon::parse($appointment->appointment_datetime);
         $now = Carbon::now();
-
-        if ($appointmentTime->diffInHours($now) < 24) {
-            return back()->with('error', 'Appointments cannot be cancelled within 24 hours.');
-        }
+        
+        // Log cancellation attempt
+        Log::info('Appointment cancellation attempt', [
+            'appointment_id' => $appointment->id,
+            'current_time' => $now->toDateTimeString(),
+            'appointment_time' => $appointmentTime->toDateTimeString(),
+            'hours_difference' => $appointmentTime->diffInHours($now)
+        ]);
 
         $appointment->status = 'cancelled';
         $appointment->cancellation_reason = 'Cancelled by patient';
         $appointment->save();
 
         return back()->with('success', 'Appointment cancelled successfully.');
+    }
+    
+    /**
+     * Confirm a suggested appointment time.
+     */
+    public function confirmSuggestion($id)
+    {
+        $patient = Auth::user()->patient;
+
+        $appointment = Appointment::where('id', $id)
+            ->where('patient_id', $patient->id)
+            ->first();
+
+        if (!$appointment) {
+            return back()->with('error', 'Appointment not found.');
+        }
+
+        // Only allow confirmation of suggested appointments
+        if ($appointment->status !== 'suggested') {
+            return back()->with('error', 'This appointment cannot be confirmed.');
+        }
+
+        $appointment->status = 'confirmed';
+        $appointment->save();
+
+        return back()->with('success', 'Appointment confirmed successfully.');
+    }
+    
+    /**
+     * Decline a suggested appointment time.
+     */
+    public function declineSuggestion($id)
+    {
+        $patient = Auth::user()->patient;
+
+        $appointment = Appointment::where('id', $id)
+            ->where('patient_id', $patient->id)
+            ->first();
+
+        if (!$appointment) {
+            return back()->with('error', 'Appointment not found.');
+        }
+
+        // Only allow declining of suggested appointments
+        if ($appointment->status !== 'suggested') {
+            return back()->with('error', 'This appointment cannot be declined.');
+        }
+
+        $appointment->status = 'cancelled';
+        $appointment->cancellation_reason = 'Patient declined suggested time';
+        $appointment->save();
+
+        return back()->with('success', 'Suggested appointment time declined.');
     }
 }

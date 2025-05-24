@@ -47,7 +47,7 @@ class DashboardController extends Controller
         $stats = [
             'totalPatients' => Patient::count(),
             'totalAppointments' => Appointment::count(),
-            'upcomingAppointments' => Appointment::whereIn('status', ['scheduled', 'confirmed'])
+            'upcomingAppointments' => Appointment::where('status', 'confirmed')
                 ->where('appointment_datetime', '>=', Carbon::now())
                 ->count(),
             'revenues' => Appointment::where('status', 'completed')
@@ -109,7 +109,7 @@ class DashboardController extends Controller
         // Fetch upcoming appointments
         $upcomingAppointments = Appointment::with(['patient.user', 'dentalService'])
             ->where('dentist_id', $dentistId)
-            ->whereIn('status', ['scheduled', 'confirmed'])
+            ->where('status', 'confirmed')
             ->where('appointment_datetime', '>', Carbon::now())
             ->orderBy('appointment_datetime')
             ->limit(10)
@@ -171,7 +171,7 @@ class DashboardController extends Controller
         // Fetch next upcoming appointment
         $nextAppointment = $missingPatientRecord ? null : Appointment::with(['dentist', 'dentalService'])
             ->where('patient_id', $patient->id)
-            ->whereIn('status', ['scheduled', 'confirmed'])
+            ->where('status', 'confirmed')
             ->where('appointment_datetime', '>', Carbon::now())
             ->orderBy('appointment_datetime')
             ->first();

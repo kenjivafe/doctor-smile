@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('dental_service_id')->nullable()->constrained()->onDelete('set null');
             $table->dateTime('appointment_datetime');
             $table->integer('duration_minutes')->default(30);
-            $table->enum('status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show'])->default('scheduled');
+            $table->enum('status', ['pending', 'suggested', 'confirmed', 'completed', 'cancelled'])->default('pending');
             $table->text('notes')->nullable();
             $table->text('treatment_notes')->nullable();
             $table->decimal('cost', 10, 2)->nullable();

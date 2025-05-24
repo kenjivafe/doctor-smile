@@ -51,10 +51,10 @@ export default function BookAppointment({
                 )}
 
                 <div className="mx-auto w-full">
-                    <p className="mb-8 text-muted-foreground">
+                    {/* <p className="mb-8 text-muted-foreground">
                         Book your dental appointment in just a few steps. Select your preferred service,
                         dentist, and a convenient time slot.
-                    </p>
+                    </p> */}
 
                     <AppointmentBookingForm
                         availableServices={availableServices}

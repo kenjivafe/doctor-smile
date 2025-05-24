@@ -19,7 +19,7 @@ class AppointmentFactory extends Factory
      */
     public function definition(): array
     {
-        $statuses = ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show'];
+        $statuses = ['pending', 'suggested', 'confirmed', 'completed', 'cancelled'];
         
         // Create appointment dates between now and 3 months in the future
         $appointmentDate = fake()->dateTimeBetween('now', '+3 months');
@@ -47,12 +47,12 @@ class AppointmentFactory extends Factory
     }
     
     /**
-     * Indicate that the appointment is scheduled.
+     * Indicate that the appointment is pending.
      */
-    public function scheduled(): static
+    public function pending(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'scheduled',
+            'status' => 'pending',
         ]);
     }
     

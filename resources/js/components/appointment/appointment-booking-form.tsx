@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { CheckCircle2 } from 'lucide-react';
 import ServiceSelection from '@/components/appointment/steps/service-selection';
 import DentistSelection from '@/components/appointment/steps/dentist-selection';
-import { DateTimeSelection } from '@/components/appointment/steps/date-time-selection';
+import { AppointmentTimePicker } from '@/components/appointment/steps/appointment-time-picker';
 import BookingSummary from '@/components/appointment/steps/booking-summary';
 
 type Step = 'service' | 'dentist' | 'datetime' | 'summary';
@@ -122,7 +122,7 @@ function AppointmentBookingForm({
       service => service.id === data.dental_service_id
     );
     const serviceDuration = selectedService?.duration_minutes || 30; // Default to 30 minutes if not found
-    
+
     switch (currentStep) {
       case 'service':
         return (
@@ -144,7 +144,7 @@ function AppointmentBookingForm({
         );
       case 'datetime':
         return (
-          <DateTimeSelection
+          <AppointmentTimePicker
             selectedDate={data.appointment_date}
             selectedTime={data.appointment_time}
             onSelectDate={(date) => setData('appointment_date', date)}
@@ -195,11 +195,11 @@ function AppointmentBookingForm({
     <Card className="mx-auto w-full">
       <div className="p-6">
         {generalError && (
-          <div className="mb-6 p-4 bg-destructive text-destructive-foreground rounded-md">
+          <div className="p-4 mb-6 rounded-md bg-destructive text-destructive-foreground">
             <p className="font-medium">{generalError}</p>
           </div>
         )}
-        <div className="mb-6">
+        <div className="mb-6 mt-[-1rem]">
           <div className="hidden relative mb-4 md:block">
             <div className="absolute top-4 w-full h-1 bg-muted"></div>
             <div className="flex relative justify-between">

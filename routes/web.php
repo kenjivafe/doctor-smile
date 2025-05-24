@@ -67,9 +67,34 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::get('appointments/{id}/complete', 'complete')->name('dentist.appointments.complete');
             Route::get('appointments/{id}/cancel', 'cancel')->name('dentist.appointments.cancel');
             
+            // API endpoint for available time slots
+            Route::get('api/available-slots', [\App\Http\Controllers\Patient\AppointmentController::class, 'getAvailableTimeSlots'])->name('dentist.api.available-slots');
+            
             // Form view routes
             Route::get('appointments/{id}/reschedule', function ($id) {
-                return Inertia::render('Dentist/reschedule-appointment', ['id' => $id]);
+                $dentistId = \Illuminate\Support\Facades\Auth::id();
+                
+                // Find the appointment and ensure it belongs to the current dentist
+                $appointment = \App\Models\Appointment::with(['patient.user', 'dentalService'])
+                    ->where('dentist_id', $dentistId)
+                    ->where('id', $id)
+                    ->firstOrFail();
+                
+                // Format the appointment data for the frontend
+                $appointmentData = [
+                    'id' => $appointment->id,
+                    'patient_name' => $appointment->patient->user->name ?? 'Unknown',
+                    'service_name' => $appointment->dentalService->name ?? 'Unknown',
+                    'dental_service_id' => $appointment->dental_service_id,
+                    'appointment_datetime' => $appointment->appointment_datetime,
+                    'status' => $appointment->status,
+                    'duration_minutes' => $appointment->duration_minutes,
+                ];
+                
+                return Inertia::render('Dentist/reschedule-appointment', [
+                    'id' => $id,
+                    'appointment' => $appointmentData
+                ]);
             })->name('dentist.appointments.reschedule');
             
             Route::post('appointments/{id}/suggest-new-time', 'suggestNewTime')->name('dentist.appointments.suggest-new-time');
@@ -116,6 +141,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('appointments', [PatientAppointmentController::class, 'index'])->name('patient.appointments');
         Route::get('appointments/{id}', [PatientAppointmentController::class, 'show'])->name('patient.appointments.show');
         Route::post('appointments/{id}/cancel', [PatientAppointmentController::class, 'cancel'])->name('patient.appointments.cancel');
+        
+        // Suggested appointment response routes
+        Route::post('appointments/{id}/confirm-suggestion', [PatientAppointmentController::class, 'confirmSuggestion'])->name('patient.appointments.confirm-suggestion');
+        Route::post('appointments/{id}/decline-suggestion', [PatientAppointmentController::class, 'declineSuggestion'])->name('patient.appointments.decline-suggestion');
         
         // API endpoint for available time slots
         Route::get('api/available-slots', [PatientAppointmentController::class, 'getAvailableTimeSlots'])->name('api.available-slots');

@@ -20,7 +20,7 @@ interface Appointment {
   dentist_name: string;
   service_name: string;
   appointment_datetime: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rescheduled';
+  status: 'pending' | 'suggested' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
   duration_minutes: number;
   cost: string;
   notes?: string;
@@ -41,8 +41,10 @@ const getStatusBadgeVariant = (status: string) => {
       return 'secondary';
     case 'cancelled':
       return 'destructive';
-    case 'rescheduled':
+    case 'suggested':
       return 'warning';
+    case 'no_show':
+      return 'destructive';
     case 'pending':
     default:
       return 'outline';
@@ -55,7 +57,7 @@ const formatStatus = (status: string) => {
 };
 
 export default function AppointmentDetails() {
-  const { appointment } = usePage().props as AppointmentDetailsProps;
+  const { appointment } = usePage().props as unknown as AppointmentDetailsProps;
   
   // Generate breadcrumbs with the current appointment
   const breadcrumbs: BreadcrumbItem[] = [
@@ -111,18 +113,52 @@ export default function AppointmentDetails() {
               </div>
             </div>
             
-            {appointment.status === 'pending' && (
-              <div className="mt-4 md:mt-0">
-                <Link 
-                  href={`/patient/appointments/${appointment.id}/cancel`}
-                  variant="destructive"
-                  className="gap-2"
-                >
-                  <AlertCircle className="h-4 w-4" />
-                  Cancel Appointment
-                </Link>
-              </div>
-            )}
+            {/* Action buttons based on appointment status */}
+            <div className="mt-4 md:mt-0">
+              {appointment.status === 'pending' && (
+                <div className="flex gap-2">
+                  <Link 
+                    href={`/patient/appointments/${appointment.id}/cancel`}
+                    variant="destructive"
+                    className="gap-2"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    Cancel Appointment
+                  </Link>
+                </div>
+              )}
+              
+              {appointment.status === 'suggested' && (
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Link 
+                    href={`/patient/appointments/${appointment.id}/confirm-suggestion`}
+                    method="post"
+                    as="button"
+                    variant="default"
+                    className="gap-2"
+                  >
+                    <CalendarClock className="h-4 w-4" />
+                    Accept New Time
+                  </Link>
+                  <Link 
+                    href={`/patient/appointments/${appointment.id}/decline-suggestion`}
+                    method="post"
+                    as="button"
+                    variant="destructive"
+                    className="gap-2"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    Decline New Time
+                  </Link>
+                </div>
+              )}
+              
+              {(appointment.status === 'confirmed' || appointment.status === 'completed') && (
+                <Badge variant={getStatusBadgeVariant(appointment.status)} className="text-sm px-3 py-1">
+                  {formatStatus(appointment.status)}
+                </Badge>
+              )}
+            </div>
           </div>
           
           {/* Appointment Details Section */}

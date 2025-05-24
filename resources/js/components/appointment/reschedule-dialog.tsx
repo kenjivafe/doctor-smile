@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { DateTimeSelection } from '@/components/appointment/steps/date-time-selection';
+import { RescheduleTimePicker } from '@/components/appointment/steps/reschedule-time-picker';
 import { useForm } from '@inertiajs/react';
 
 interface RescheduleDialogProps {
@@ -62,7 +62,7 @@ export function RescheduleDialog({
             Please select a new date and time for this appointment.
           </p>
           
-          <DateTimeSelection
+          <RescheduleTimePicker
             selectedDate={selectedDate}
             selectedTime={selectedTime}
             onSelectDate={(date) => setSelectedDate(date)}

@@ -140,6 +140,11 @@ class AppointmentController extends Controller
             ->where('id', $id)
             ->firstOrFail();
             
+        // Only allow confirming pending appointments
+        if ($appointment->status !== 'pending') {
+            return back()->with('error', 'Only pending appointments can be confirmed.');
+        }
+            
         // Update the appointment status to confirmed
         $appointment->status = 'confirmed';
         $appointment->save();
@@ -191,17 +196,28 @@ class AppointmentController extends Controller
             ->where('id', $id)
             ->firstOrFail();
             
+        // Only allow cancelling pending or suggested appointments
+        if (!in_array($appointment->status, ['pending', 'suggested'])) {
+            return back()->with('error', 'Only pending or suggested appointments can be cancelled.');
+        }
+            
         // Update the appointment status to cancelled
         $appointment->status = 'cancelled';
         
         if ($request->has('cancellation_reason')) {
             $appointment->cancellation_reason = $request->cancellation_reason;
+        } else {
+            if ($appointment->status === 'suggested') {
+                $appointment->cancellation_reason = 'Suggestion cancelled by dentist';
+            } else {
+                $appointment->cancellation_reason = 'Rejected by dentist';
+            }
         }
         
         $appointment->save();
         
         return redirect()->route('dentist.appointments')
-            ->with('success', 'Appointment cancelled successfully.');
+            ->with('success', 'Appointment rejected successfully.');
     }
 
     /**
@@ -256,25 +272,28 @@ class AppointmentController extends Controller
             ->where('id', $id)
             ->firstOrFail();
             
-        // Create a new appointment with the suggested time
-        $newAppointment = new Appointment();
-        $newAppointment->patient_id = $appointment->patient_id;
-        $newAppointment->dentist_id = $dentistId;
-        $newAppointment->dental_service_id = $appointment->dental_service_id;
-        $newAppointment->appointment_datetime = $request->appointment_datetime;
-        $newAppointment->duration_minutes = $request->duration_minutes;
-        $newAppointment->status = 'scheduled';
-        $newAppointment->notes = $request->notes ?? 'Rescheduled from appointment #' . $appointment->id;
-        $newAppointment->cost = $appointment->cost;
-        $newAppointment->save();
+        // Only allow suggesting new times for pending appointments
+        if ($appointment->status !== 'pending') {
+            return back()->with('error', 'You can only suggest new times for pending appointments.');
+        }
         
-        // Update the original appointment
-        // Using 'cancelled' status since 'rescheduled' is not in the allowed enum values
-        $appointment->status = 'cancelled';
-        $appointment->cancellation_reason = 'Rescheduled to ' . date('Y-m-d H:i', strtotime($request->appointment_datetime));
+        // Update the appointment with the suggested time
+        $oldDateTime = $appointment->appointment_datetime;
+        $appointment->appointment_datetime = $request->appointment_datetime;
+        $appointment->duration_minutes = $request->duration_minutes;
+        $appointment->status = 'suggested';
+        
+        // Add a note about the time change
+        $suggestionNote = 'Dentist suggested a new time. Original time was: ' . date('Y-m-d H:i', strtotime($oldDateTime));
+        $appointment->notes = $appointment->notes ? $appointment->notes . "\n\n" . $suggestionNote : $suggestionNote;
+        
+        if ($request->notes) {
+            $appointment->notes .= "\n\nDentist's note: " . $request->notes;
+        }
+        
         $appointment->save();
         
-        return redirect()->route('dentist.appointments.show', $newAppointment->id)
-            ->with('success', 'New appointment time suggested successfully.');
+        return redirect()->route('dentist.appointments.show', $appointment->id)
+            ->with('success', 'New appointment time suggested successfully. Waiting for patient confirmation.');
     }
 }
