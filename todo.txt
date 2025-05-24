@@ -1,5 +1,5 @@
 ===== DOCTOR SMILE DENTAL CLINIC APP - DEVELOPMENT TRACKER =====
-Last Updated: 2025-05-24 10:35
+Last Updated: 2025-05-24 11:52
 
 This file tracks development progress and planned tasks for the Doctor Smile application.
 Update this file whenever changes are made to maintain continuity across development sessions.
@@ -33,6 +33,8 @@ Update this file whenever changes are made to maintain continuity across develop
 - [x] Implemented default working hours for dentists (2025-05-23)
 - [x] Connected appointment booking to dentist's schedule (2025-05-24)
 - [x] Added working hours and blocked dates validation for appointments (2025-05-24)
+- [x] Enhanced patient details page with proper data display and formatting (2025-05-24)
+- [x] Implemented patient balance update functionality with popover UI (2025-05-24)
 
 == IN PROGRESS ==
 - [ ] Dentist appointment approval workflow (Started: 2025-05-23)
@@ -55,7 +57,6 @@ Update this file whenever changes are made to maintain continuity across develop
 === PRIORITY 3: Time Availability & Scheduling ===
 - [x] Dentist working hours management
 - [x] Appointment collision prevention
-- [ ] Google Calendar integration
 
 === PRIORITY 4: Cancellations & Reminders ===
 - [ ] Patient appointment cancellation system
@@ -86,7 +87,6 @@ Update this file whenever changes are made to maintain continuity across develop
 1. Complete dentist appointment approval workflow
 2. Implement appointment rescheduling functionality
 3. Add real-time updates via WebSockets
-4. Implement Google Calendar integration
 
 == NOTES ==
 - Laravel 12 with React + Inertia.js

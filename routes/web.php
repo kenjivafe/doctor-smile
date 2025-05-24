@@ -85,9 +85,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::delete('schedule/blocked-dates/{id}', 'deleteBlockedDate')->name('dentist.schedule.delete-blocked-date');
         });
 
-        Route::get('patients', function () {
-            return Inertia::render('Dentist/patients');
-        })->name('dentist.patients');
+        // Patient routes
+        Route::controller(\App\Http\Controllers\Dentist\PatientController::class)->group(function () {
+            Route::get('patients', 'index')->name('dentist.patients');
+            Route::get('patients/{id}', 'show')->name('dentist.patients.show');
+            Route::post('patients/{id}/update-next-appointment', 'updateNextAppointment')->name('dentist.patients.update-next-appointment');
+            Route::post('patients/{id}/update-medical-notes', 'updateMedicalNotes')->name('dentist.patients.update-medical-notes');
+            Route::post('patients/{id}/update-balance', 'updateBalance')->name('dentist.patients.update-balance');
+        });
 
         Route::get('records', function () {
             return Inertia::render('Dentist/records');

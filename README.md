@@ -46,6 +46,8 @@ Doctor Smile is a modern dental clinic appointment system designed to streamline
 - ✅ Dentist working hours management
 - ✅ Appointment collision prevention
 - ✅ Integration of appointment booking with dentist's schedule
+- ✅ Patient balance tracking and update functionality
+- ✅ Enhanced patient details page with proper data display
 
 ### In Progress
 - 🔄 Dentist appointment approval workflow
@@ -53,7 +55,6 @@ Doctor Smile is a modern dental clinic appointment system designed to streamline
 - 🔄 Real-time updates via WebSockets
 
 ### Planned
-- 📝 Google Calendar integration
 - 📝 Email reminder system
 - 📝 Patient appointment cancellation system
 
@@ -119,12 +120,11 @@ The database seeder creates the following test accounts:
 - Time Availability & Scheduling
   - Dentists manually set available working hours
   - Support for appointment reallocation
-  - Google Calendar integration
 
 - Patient Record Management
   - Patient profiles with medical history
   - Appointment history tracking
-  - Balance management
+  - Balance tracking and update functionality
 
 - Analytics & Decision Support
   - Admin dashboard with insights
