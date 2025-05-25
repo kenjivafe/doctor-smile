@@ -50,11 +50,11 @@ const getStatusBadgeVariant = (status: string) => {
     case 'confirmed':
       return 'default'; // Primary color
     case 'completed':
-      return 'success';
+      return 'secondary';
     case 'pending':
       return 'warning';
     case 'suggested':
-      return 'secondary';
+      return 'warning';
     case 'cancelled':
     case 'rejected':
       return 'destructive';
@@ -74,12 +74,12 @@ export default function Appointments() {
   const [appointmentToCancel, setAppointmentToCancel] = React.useState<number | null>(null);
   const [appointmentToAccept, setAppointmentToAccept] = React.useState<number | null>(null);
   const [appointmentToDecline, setAppointmentToDecline] = React.useState<number | null>(null);
-  
+
   // Function to handle cancellation
   const handleCancelAppointment = () => {
     if (!appointmentToCancel) return;
     setLoading(true);
-    
+
     router.post(`/patient/appointments/${appointmentToCancel}/cancel`, {}, {
       onSuccess: () => {
         setAppointmentToCancel(null);
@@ -91,12 +91,12 @@ export default function Appointments() {
       },
     });
   };
-  
+
   // Function to handle accepting a suggested time
   const handleAcceptSuggestion = () => {
     if (!appointmentToAccept) return;
     setLoading(true);
-    
+
     router.post(`/patient/appointments/${appointmentToAccept}/confirm-suggestion`, {}, {
       onSuccess: () => {
         setAppointmentToAccept(null);
@@ -108,12 +108,12 @@ export default function Appointments() {
       },
     });
   };
-  
+
   // Function to handle declining a suggested time
   const handleDeclineSuggestion = () => {
     if (!appointmentToDecline) return;
     setLoading(true);
-    
+
     router.post(`/patient/appointments/${appointmentToDecline}/decline-suggestion`, {}, {
       onSuccess: () => {
         setAppointmentToDecline(null);
@@ -129,7 +129,7 @@ export default function Appointments() {
   return (
     <>
       <Head title="Appointments" />
-      
+
       {/* Confirmation dialogs */}
       <ConfirmDialog
         open={!!appointmentToCancel}
@@ -139,7 +139,7 @@ export default function Appointments() {
         onConfirm={handleCancelAppointment}
         loading={loading}
       />
-      
+
       <ConfirmDialog
         open={!!appointmentToAccept}
         onOpenChange={() => setAppointmentToAccept(null)}
@@ -148,7 +148,7 @@ export default function Appointments() {
         onConfirm={handleAcceptSuggestion}
         loading={loading}
       />
-      
+
       <ConfirmDialog
         open={!!appointmentToDecline}
         onOpenChange={() => setAppointmentToDecline(null)}
@@ -157,16 +157,16 @@ export default function Appointments() {
         onConfirm={handleDeclineSuggestion}
         loading={loading}
       />
-      
-      <PageTemplate 
+
+      <PageTemplate
         title="My Appointments"
         description="View and manage your upcoming dental appointments."
         breadcrumbs={breadcrumbs}
       >
         <Card className="p-6">
           {appointments.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">You don't have any appointments yet.</p>
+            <div className="py-8 text-center">
+              <p className="mb-4 text-muted-foreground">You don't have any appointments yet.</p>
               <Link href="/patient/book-appointment" variant="default">
                 Book an Appointment
               </Link>
@@ -191,12 +191,12 @@ export default function Appointments() {
                     <TableCell>Dr. {appointment.dentist_name}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="flex items-center gap-1">
-                          <CalendarClock className="h-3 w-3" />
+                        <span className="flex gap-1 items-center">
+                          <CalendarClock className="w-3 h-3" />
                           {format(new Date(appointment.appointment_datetime), 'MMM d, yyyy')}
                         </span>
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="h-3 w-3" />
+                        <span className="flex gap-1 items-center text-muted-foreground">
+                          <Clock className="w-3 h-3" />
                           {/* Format the time to be more user-friendly */}
                           {(() => {
                             const timePart = appointment.appointment_datetime.split('T')[1].substring(0, 5);
@@ -215,89 +215,89 @@ export default function Appointments() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex gap-2 justify-end">
                         <Link
                           variant="outline"
                           href={`/patient/appointments/${appointment.id}`}
-                          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0"
+                          className="inline-flex justify-center items-center p-0 w-9 h-9 text-sm font-medium rounded-md border transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-input bg-background hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent dark:hover:text-accent-foreground dark:bg-popover"
                         >
-                          <Info className="h-4 w-4" />
+                          <Info className="w-4 h-4" />
                           <span className="sr-only">Details</span>
                         </Link>
                         {(['pending', 'suggested', 'confirmed'] as AppointmentStatus[]).includes(appointment.status) && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
+                              <button className="inline-flex justify-center items-center p-0 w-9 h-9 text-sm font-medium rounded-md border transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-input bg-popover hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent dark:hover:text-accent-foreground">
+                                <MoreHorizontal className="w-4 h-4" />
                                 <span className="sr-only">Actions</span>
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-popover p-2 text-popover-foreground border border-border shadow-md rounded-md">
+                            <DropdownMenuContent align="end" className="p-2 rounded-md border shadow-md bg-popover text-popover-foreground border-border">
                               {/* Actions for confirmed appointments */}
                               {appointment.status === 'confirmed' && (
-                                <div className="mt-1">
+                                <div className="">
                                   <button
                                     type="button"
                                     onClick={() => setAppointmentToCancel(appointment.id)}
-                                    className="flex items-center justify-between w-full bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground py-2 px-2 rounded transition-colors"
+                                    className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
                                   >
-                                    <div className="flex-grow text-left text-sm font-medium">Cancel</div>
+                                    <div className="flex-grow text-sm font-medium text-left">Cancel</div>
                                     <div className="flex items-center">
-                                      <XCircle className="h-4 w-4" />
+                                      <XCircle className="w-4 h-4" />
                                     </div>
                                   </button>
                                 </div>
                               )}
-                              
+
                               {/* Actions for pending appointments */}
                               {appointment.status === 'pending' && (
-                                <div className="mt-1">
+                                <div className="">
                                   <button
                                     type="button"
                                     onClick={() => setAppointmentToCancel(appointment.id)}
-                                    className="flex items-center justify-between w-full bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground py-2 px-2 rounded transition-colors"
+                                    className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
                                   >
-                                    <div className="flex-grow text-left text-sm font-medium">Cancel</div>
+                                    <div className="flex-grow text-sm font-medium text-left">Cancel</div>
                                     <div className="flex items-center">
-                                      <XCircle className="h-4 w-4" />
+                                      <XCircle className="w-4 h-4" />
                                     </div>
                                   </button>
                                 </div>
                               )}
-                              
+
                               {/* Actions for suggested appointments */}
                               {appointment.status === 'suggested' && (
                                 <>
                                   <div className="mb-1">
-                                    <button 
+                                    <button
                                       type="button"
                                       onClick={() => setAppointmentToAccept(appointment.id)}
-                                      className="flex items-center justify-between w-full bg-background dark:bg-popover hover:bg-primary text-primary hover:text-primary-foreground py-2 px-2 rounded transition-colors"
+                                      className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-primary text-primary hover:text-primary-foreground dark:hover:bg-blue-600 dark:hover:text-white"
                                     >
-                                      <div className="flex-grow text-left text-sm font-medium">Accept</div>
+                                      <div className="flex-grow text-sm font-medium text-left">Accept</div>
                                       <div className="flex items-center">
-                                        <CheckCircle className="h-4 w-4" />
+                                        <CheckCircle className="w-4 h-4" />
                                       </div>
                                     </button>
                                   </div>
                                   <div className="mt-1">
-                                    <button 
+                                    <button
                                       type="button"
                                       onClick={() => setAppointmentToDecline(appointment.id)}
-                                      className="flex items-center justify-between w-full bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground py-2 px-2 rounded transition-colors"
+                                      className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
                                     >
-                                      <div className="flex-grow text-left text-sm font-medium">Decline</div>
+                                      <div className="flex-grow text-sm font-medium text-left">Decline</div>
                                       <div className="flex items-center">
-                                        <XCircle className="h-4 w-4" />
+                                        <XCircle className="w-4 h-4" />
                                       </div>
                                     </button>
                                   </div>
                                 </>
                               )}
-                              
+
                               {/* Actions for completed/cancelled appointments - no actions available */}
                               {['completed', 'cancelled'].includes(appointment.status) && (
-                                <div className="text-center py-2 text-sm text-muted-foreground">
+                                <div className="py-2 text-sm text-center text-muted-foreground">
                                   No actions available
                                 </div>
                               )}

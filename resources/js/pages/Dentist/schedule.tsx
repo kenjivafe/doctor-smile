@@ -1,6 +1,6 @@
 import { PageTemplate } from '@/components/page-template';
 import { type BreadcrumbItem } from '@/types';
-import { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { router, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,7 +89,7 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
 
   const handleAddBlockedDate = (e: FormEvent) => {
     e.preventDefault();
-    
+
     // Create a FormData object to handle the submission
     const formData = new FormData();
     formData.append('blocked_date', blockedDateForm.data.blocked_date);
@@ -97,7 +97,7 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
     formData.append('end_time', isFullDay ? '' : blockedDateForm.data.end_time);
     formData.append('reason', blockedDateForm.data.reason);
     formData.append('is_full_day', isFullDay ? '1' : '0');
-    
+
     // Post the form
     router.post(route('dentist.schedule.store-blocked-date'), formData, {
       onSuccess: () => {
@@ -120,12 +120,7 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
     }
   };
 
-  const toggleWorkingHourStatus = (hour: WorkingHour) => {
-    router.put(route('dentist.schedule.update-working-hour', hour.id), {
-      ...hour,
-      is_active: !hour.is_active,
-    });
-  };
+  // No longer tracking active status separately
 
   const formatTime = (time: string) => {
     // Convert 24-hour format to 12-hour format
@@ -138,22 +133,22 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
 
   return (
     <PageTemplate title="My Schedule" breadcrumbs={breadcrumbs}>
-      <div className="w-full mb-6">
-        <div className="flex border-b mb-4">
-          <button 
-            onClick={() => setActiveTab('working-hours')} 
+      <div className="mb-6 w-full">
+        <div className="flex mb-4 border-b">
+          <button
+            onClick={() => setActiveTab('working-hours')}
             className={`px-4 py-2 ${activeTab === 'working-hours' ? 'border-b-2 border-blue-500 font-medium' : 'text-gray-500'}`}
           >
             Working Hours
           </button>
-          <button 
-            onClick={() => setActiveTab('blocked-dates')} 
+          <button
+            onClick={() => setActiveTab('blocked-dates')}
             className={`px-4 py-2 ${activeTab === 'blocked-dates' ? 'border-b-2 border-blue-500 font-medium' : 'text-gray-500'}`}
           >
             Blocked Dates
           </button>
         </div>
-        
+
         {/* Working Hours Tab */}
         {activeTab === 'working-hours' && (
           <Card>
@@ -166,47 +161,35 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
             <CardContent>
               <div className="space-y-4">
                 {workingHours.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {workingHours.map((hour) => (
-                      <div 
-                        key={hour.id} 
-                        className={`flex items-center justify-between p-4 border rounded-lg ${
-                          hour.is_active ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50 opacity-70"
-                        }`}
+                      <div
+                        key={hour.id}
+                        className="flex items-center justify-between p-4 border rounded-lg border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-800"
                       >
                         <div className="flex items-center space-x-4">
-                          <div className="font-medium w-28">{hour.day_name}</div>
+                          <div className="w-28 font-medium">{hour.day_name}</div>
                           <div className="flex items-center space-x-1">
-                            <Clock className="h-4 w-4 text-gray-500" />
+                            <Clock className="w-4 h-4 text-gray-500 dark:text-gray-200" />
                             <span>{formatTime(hour.start_time)} - {formatTime(hour.end_time)}</span>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="flex items-center">
-                            <input 
-                              type="checkbox" 
-                              id={`active-${hour.id}`}
-                              checked={hour.is_active}
-                              onChange={() => toggleWorkingHourStatus(hour)}
-                              className="mr-2"
-                            />
-                            <label htmlFor={`active-${hour.id}`} className="text-sm font-medium">
-                              Active
-                            </label>
-                          </div>
-                          <Button 
-                            variant="ghost" 
+                          {/* Active toggle removed */}
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteWorkingHour(hour.id)}
+                            className="dark:hover:bg-white dark:hover:text-red-600"
                           >
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="py-8 text-center text-gray-500">
                     No working hours set. Add your regular working hours to let patients know when you're available.
                   </div>
                 )}
@@ -214,13 +197,13 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
             </CardContent>
             <CardFooter>
               <Button onClick={() => setShowAddWorkingHourForm(true)}>
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 w-4 h-4" />
                 Add Working Hours
               </Button>
             </CardFooter>
           </Card>
         )}
-        
+
         {/* Blocked Dates Tab */}
         {activeTab === 'blocked-dates' && (
           <Card>
@@ -233,46 +216,47 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
             <CardContent>
               <div className="space-y-4">
                 {blockedDates.length > 0 ? (
-                  <div className="grid gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {blockedDates.map((date) => (
-                      <div key={date.id} className="flex items-center justify-between p-4 border rounded-lg border-red-200 bg-red-50">
+                      <div key={date.id} className="flex justify-between items-center p-4 bg-red-50 rounded-lg border border-red-200 dark:bg-red-800 dark:border-red-800">
                         <div className="flex flex-col">
                           <div className="font-medium">
-                            {new Date(date.blocked_date).toLocaleDateString('en-US', { 
-                              weekday: 'long', 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
+                            {new Date(date.blocked_date).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
                             })}
                           </div>
-                          <div className="text-sm text-gray-500 mt-1">
+                          <div className="mt-1 text-sm text-gray-500">
                             {date.is_full_day ? (
-                              <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-800 rounded">Full Day</span>
+                              <span className="inline-block px-2 py-1 text-xs text-red-800 bg-red-100 rounded">Full Day</span>
                             ) : (
                               <div className="flex items-center space-x-1">
-                                <Clock className="h-4 w-4" />
+                                <Clock className="w-4 h-4" />
                                 <span>{formatTime(date.start_time || '')} - {formatTime(date.end_time || '')}</span>
                               </div>
                             )}
                           </div>
                           {date.reason && (
-                            <div className="text-sm mt-1">
+                            <div className="mt-1 text-sm">
                               <span className="font-medium">Reason:</span> {date.reason}
                             </div>
                           )}
                         </div>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteBlockedDate(date.id)}
+                          className="dark:hover:bg-white dark:hover:text-red-600"
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="py-8 text-center text-gray-500">
                     No blocked dates set. Block dates when you're not available for appointments.
                   </div>
                 )}
@@ -280,14 +264,14 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
             </CardContent>
             <CardFooter>
               <Button onClick={() => setShowAddBlockedDateForm(true)}>
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 w-4 h-4" />
                 Block a Date
               </Button>
             </CardFooter>
           </Card>
         )}
       </div>
-      
+
       {/* Add Working Hour Form */}
       <Dialog open={showAddWorkingHourForm} onOpenChange={setShowAddWorkingHourForm}>
         <DialogContent>
@@ -306,7 +290,7 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
                   id="day_of_week"
                   value={workingHourForm.data.day_of_week}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => workingHourForm.setData('day_of_week', e.target.value)}
-                  className="w-full p-2 border rounded-md"
+                  className="p-2 w-full rounded-md border"
                   required
                 >
                   <option value="">Select a day</option>
@@ -317,7 +301,7 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
                   ))}
                 </select>
               </div>
-              
+
               <div className="space-y-2">
                 <label htmlFor="start_time" className="block text-sm font-medium">
                   Start Time
@@ -327,11 +311,11 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
                   id="start_time"
                   value={workingHourForm.data.start_time}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => workingHourForm.setData('start_time', e.target.value)}
-                  className="w-full p-2 border rounded-md"
+                  className="p-2 w-full rounded-md border"
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label htmlFor="end_time" className="block text-sm font-medium">
                   End Time
@@ -341,14 +325,14 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
                   id="end_time"
                   value={workingHourForm.data.end_time}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => workingHourForm.setData('end_time', e.target.value)}
-                  className="w-full p-2 border rounded-md"
+                  className="p-2 w-full rounded-md border"
                   required
                 />
               </div>
-              
+
               <DialogFooter>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="outline"
                   onClick={() => setShowAddWorkingHourForm(false)}
                 >
@@ -359,7 +343,7 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
             </form>
           </DialogContent>
         </Dialog>
-      
+
       {/* Add Blocked Date Form */}
       <Dialog open={showAddBlockedDateForm} onOpenChange={setShowAddBlockedDateForm}>
         <DialogContent>
@@ -379,24 +363,24 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
                   id="blocked_date"
                   value={blockedDateForm.data.blocked_date}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => blockedDateForm.setData('blocked_date', e.target.value)}
-                  className="w-full p-2 border rounded-md"
+                  className="p-2 w-full rounded-md border"
                   required
                 />
               </div>
-              
-              <div className="flex items-center space-x-2 mb-4">
+
+              <div className="flex items-center mb-4 space-x-2">
                 <input
                   type="checkbox"
                   id="is_full_day"
                   checked={isFullDay}
                   onChange={() => setIsFullDay(!isFullDay)}
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                 />
                 <label htmlFor="is_full_day" className="text-sm font-medium">
                   Block entire day
                 </label>
               </div>
-              
+
               {!isFullDay && (
                 <>
                   <div className="space-y-2">
@@ -408,11 +392,11 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
                       id="start_time_blocked"
                       value={blockedDateForm.data.start_time}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => blockedDateForm.setData('start_time', e.target.value)}
-                      className="w-full p-2 border rounded-md"
+                      className="p-2 w-full rounded-md border"
                       required={!isFullDay}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label htmlFor="end_time_blocked" className="block text-sm font-medium">
                       End Time
@@ -422,13 +406,13 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
                       id="end_time_blocked"
                       value={blockedDateForm.data.end_time}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => blockedDateForm.setData('end_time', e.target.value)}
-                      className="w-full p-2 border rounded-md"
+                      className="p-2 w-full rounded-md border"
                       required={!isFullDay}
                     />
                   </div>
                 </>
               )}
-              
+
               <div className="space-y-2">
                 <label htmlFor="reason" className="block text-sm font-medium">
                   Reason (Optional)
@@ -437,14 +421,14 @@ export default function Schedule({ workingHours = [], blockedDates = [] }: Sched
                   id="reason"
                   value={blockedDateForm.data.reason}
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) => blockedDateForm.setData('reason', e.target.value)}
-                  className="w-full p-2 border rounded-md"
+                  className="p-2 w-full rounded-md border"
                   rows={3}
                 />
               </div>
-              
+
               <DialogFooter>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="outline"
                   onClick={() => setShowAddBlockedDateForm(false)}
                 >

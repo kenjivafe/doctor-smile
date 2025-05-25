@@ -76,8 +76,8 @@ export default function Appointments() {
       <PageTemplate title="Appointments Management" breadcrumbs={breadcrumbs}>
         <Card className="p-6">
           {appointments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CalendarClock className="mb-4 h-12 w-12 text-muted-foreground" />
+            <div className="flex flex-col justify-center items-center py-12 text-center">
+              <CalendarClock className="mb-4 w-12 h-12 text-muted-foreground" />
               <h3 className="mb-2 text-xl font-semibold">No Appointments Yet</h3>
               <p className="mb-6 text-muted-foreground">
                 You don't have any appointments scheduled yet.
@@ -104,12 +104,12 @@ export default function Appointments() {
                     <TableCell>{appointment.patient_name}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="flex items-center gap-1">
-                          <CalendarClock className="h-3 w-3" />
+                        <span className="flex gap-1 items-center">
+                          <CalendarClock className="w-3 h-3" />
                           {format(new Date(appointment.appointment_datetime), 'MMM d, yyyy')}
                         </span>
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="h-3 w-3" />
+                        <span className="flex gap-1 items-center text-muted-foreground">
+                          <Clock className="w-3 h-3" />
                           {/* Format the time to be more user-friendly */}
                           {(() => {
                             const timePart = appointment.appointment_datetime.split('T')[1].substring(0, 5);
@@ -129,116 +129,116 @@ export default function Appointments() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex gap-2 justify-end">
                         <Link
                           variant="outline"
                           href={`/dentist/appointments/${appointment.id}`}
-                          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0"
+                          className="inline-flex justify-center items-center p-0 w-9 h-9 text-sm font-medium rounded-md border transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-input bg-background hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent dark:hover:text-accent-foreground dark:bg-popover"
                         >
-                          <Info className="h-4 w-4" />
+                          <Info className="w-4 h-4" />
                           <span className="sr-only">Details</span>
                         </Link>
                         {(['pending', 'suggested', 'confirmed'] as AppointmentStatus[]).includes(appointment.status) && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
+                              <button className="inline-flex justify-center items-center p-0 w-9 h-9 text-sm font-medium rounded-md border transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-input bg-background hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent dark:hover:text-accent-foreground dark:bg-popover">
+                                <MoreHorizontal className="w-4 h-4" />
                                 <span className="sr-only">Actions</span>
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white p-2">
+                            <DropdownMenuContent align="end">
                               {/* Actions for pending appointments */}
                               {appointment.status === 'pending' && (
                                 <>
-                                  <div className="mb-1">
-                                    <Link 
+                                  <div className="m-1">
+                                    <Link
                                       href={`/dentist/appointments/${appointment.id}/confirm`}
-                                      className="flex items-center justify-between text-emerald-600 hover:text-white w-full bg-white hover:bg-emerald-600 py-2 px-2 rounded"
+                                      className="flex justify-between items-center px-2 py-2 w-full text-emerald-600 rounded bg-popover hover:text-white hover:bg-emerald-600"
                                     >
-                                      <div className="flex-grow text-left text-sm font-medium">Confirm</div>
+                                      <div className="flex-grow text-sm font-medium text-left">Confirm</div>
                                       <div className="flex items-center">
-                                        <CheckCircle className="h-4 w-4" />
+                                        <CheckCircle className="w-4 h-4" />
                                       </div>
                                     </Link>
                                   </div>
-                                  <div className="my-1">
-                                    <Link 
+                                  <div className="m-1">
+                                    <Link
                                       href={`/dentist/appointments/${appointment.id}/reschedule`}
-                                      className="flex items-center justify-between text-blue-600 hover:text-white w-full bg-white hover:bg-blue-600 py-2 px-2 rounded"
+                                      className="flex justify-between items-center px-2 py-2 w-full text-blue-600 rounded bg-popover hover:text-white hover:bg-blue-600"
                                     >
-                                      <div className="flex-grow text-left text-sm font-medium">Suggest New Time</div>
+                                      <div className="flex-grow text-sm font-medium text-left">Reschedule</div>
                                       <div className="flex items-center">
-                                        <Edit className="h-4 w-4" />
+                                        <Edit className="w-4 h-4" />
                                       </div>
                                     </Link>
                                   </div>
-                                  <div className="mt-1">
-                                    <Link 
-                                      href={`/dentist/appointments/${appointment.id}/cancel`} 
-                                      className="flex items-center justify-between text-red-600 hover:text-white w-full bg-white hover:bg-red-600 py-2 px-2 rounded"
+                                  <div className="m-1">
+                                    <Link
+                                      href={`/dentist/appointments/${appointment.id}/cancel`}
+                                      className="flex justify-between items-center px-2 py-2 w-full text-red-600 rounded bg-popover hover:text-white hover:bg-red-600"
                                     >
-                                      <div className="flex-grow text-left text-sm font-medium">Cancel</div>
+                                      <div className="flex-grow text-sm font-medium text-left">Cancel</div>
                                       <div className="flex items-center">
-                                        <XCircle className="h-4 w-4" />
+                                        <XCircle className="w-4 h-4" />
                                       </div>
                                     </Link>
                                   </div>
                                 </>
                               )}
-                              
+
                               {/* Actions for suggested appointments */}
                               {appointment.status === 'suggested' && (
-                                <div className="mt-1">
-                                  <Link 
-                                    href={`/dentist/appointments/${appointment.id}/cancel`} 
-                                    className="flex items-center justify-between text-red-600 hover:text-white w-full bg-white hover:bg-red-600 py-2 px-2 rounded"
+                                <div className="m-1">
+                                  <Link
+                                    href={`/dentist/appointments/${appointment.id}/cancel`}
+                                    className="flex justify-between items-center px-2 py-2 w-full text-red-600 rounded hover:text-white bg-popover hover:bg-red-600"
                                   >
-                                    <div className="flex-grow text-left text-sm font-medium">Cancel Suggestion</div>
+                                    <div className="flex-grow text-sm font-medium text-left">Cancel Suggestion</div>
                                     <div className="flex items-center">
-                                      <XCircle className="h-4 w-4" />
+                                      <XCircle className="w-4 h-4" />
                                     </div>
                                   </Link>
                                 </div>
                               )}
-                              
+
                               {/* Actions for confirmed appointments */}
                               {appointment.status === 'confirmed' && (
                                 <>
-                                  <div className="mb-1">
-                                    <Link 
+                                  <div className="m-1">
+                                    <Link
                                       href={`/dentist/appointments/${appointment.id}/complete`}
-                                      className="flex items-center justify-between text-emerald-600 hover:text-white w-full bg-white hover:bg-emerald-600 py-2 px-2 rounded"
+                                      className="flex justify-between items-center px-2 py-2 w-full text-emerald-600 rounded bg-popover hover:text-white hover:bg-emerald-600"
                                     >
-                                      <div className="flex-grow text-left text-sm font-medium">Complete</div>
+                                      <div className="flex-grow text-sm font-medium text-left">Complete</div>
                                       <div className="flex items-center">
-                                        <CheckCircle className="h-4 w-4" />
+                                        <CheckCircle className="w-4 h-4" />
                                       </div>
                                     </Link>
                                   </div>
-                                  <div className="mt-1">
-                                    <Link 
-                                      href={`/dentist/appointments/${appointment.id}/cancel`} 
-                                      className="flex items-center justify-between text-red-600 hover:text-white w-full bg-white hover:bg-red-600 py-2 px-2 rounded"
+                                  <div className="m-1">
+                                    <Link
+                                      href={`/dentist/appointments/${appointment.id}/cancel`}
+                                      className="flex justify-between items-center px-2 py-2 w-full text-red-600 rounded bg-popover hover:text-white hover:bg-red-600"
                                     >
-                                      <div className="flex-grow text-left text-sm font-medium">Cancel</div>
+                                      <div className="flex-grow text-sm font-medium text-left">Cancel</div>
                                       <div className="flex items-center">
-                                        <XCircle className="h-4 w-4" />
+                                        <XCircle className="w-4 h-4" />
                                       </div>
                                     </Link>
                                   </div>
                                 </>
                               )}
-                              
+
                               {/* Actions for completed appointments - no actions available */}
                               {appointment.status === 'completed' && (
-                                <div className="text-center py-2 text-sm text-muted-foreground">
+                                <div className="py-2 text-sm text-center text-muted-foreground">
                                   No actions available
                                 </div>
                               )}
-                              
+
                               {/* Actions for cancelled appointments - no actions available */}
                               {appointment.status === 'cancelled' && (
-                                <div className="text-center py-2 text-sm text-muted-foreground">
+                                <div className="py-2 text-sm text-center text-muted-foreground">
                                   No actions available
                                 </div>
                               )}
