@@ -5,9 +5,21 @@ import { Head, usePage, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { CalendarClock, Clock, Info, CheckCircle, XCircle, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Link } from '@/components/ui/link';
 import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 import {
   DropdownMenu,
@@ -74,9 +86,48 @@ export default function Appointments() {
   const [appointmentToCancel, setAppointmentToCancel] = React.useState<number | null>(null);
   const [appointmentToAccept, setAppointmentToAccept] = React.useState<number | null>(null);
   const [appointmentToDecline, setAppointmentToDecline] = React.useState<number | null>(null);
+  
+  // For the cancellation dialog
+  const [cancelDialogOpen, setCancelDialogOpen] = React.useState(false);
+  const [selectedAppointment, setSelectedAppointment] = React.useState<Appointment | null>(null);
+  const [cancellationReason, setCancellationReason] = React.useState('');
 
-  // Function to handle cancellation
+  // Function to open the cancel dialog
+  const openCancelDialog = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setCancelDialogOpen(true);
+  };
+  
+  // Function to close the cancel dialog
+  const closeCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setSelectedAppointment(null);
+    setCancellationReason('');
+  };
+
+  // Function to handle cancellation with reason
   const handleCancelAppointment = () => {
+    if (!selectedAppointment) return;
+    setLoading(true);
+
+    router.post(`/patient/appointments/${selectedAppointment.id}/cancel`, {
+      cancellation_reason: cancellationReason || 'Cancelled by patient'
+    }, {
+      onSuccess: () => {
+        setLoading(false);
+        closeCancelDialog();
+        // Refresh the page to update the appointments list
+        window.location.reload();
+      },
+      onError: (error) => {
+        console.error('Error cancelling appointment:', error);
+        setLoading(false);
+      },
+    });
+  };
+  
+  // Legacy handle function for the simple confirm dialog
+  const handleSimpleCancelAppointment = () => {
     if (!appointmentToCancel) return;
     setLoading(true);
 
@@ -84,6 +135,8 @@ export default function Appointments() {
       onSuccess: () => {
         setAppointmentToCancel(null);
         setLoading(false);
+        // Refresh the page to update the appointments list
+        window.location.reload();
       },
       onError: (error) => {
         console.error('Error cancelling appointment:', error);
@@ -101,6 +154,8 @@ export default function Appointments() {
       onSuccess: () => {
         setAppointmentToAccept(null);
         setLoading(false);
+        // Refresh the page to update the appointments list
+        window.location.reload();
       },
       onError: (error) => {
         console.error('Error accepting suggested time:', error);
@@ -118,6 +173,8 @@ export default function Appointments() {
       onSuccess: () => {
         setAppointmentToDecline(null);
         setLoading(false);
+        // Refresh the page to update the appointments list
+        window.location.reload();
       },
       onError: (error) => {
         console.error('Error declining suggested time:', error);
@@ -131,38 +188,111 @@ export default function Appointments() {
       <Head title="Appointments" />
 
       {/* Confirmation dialogs */}
+      {/* Legacy confirm dialog - keeping it for now */}
       <ConfirmDialog
         open={!!appointmentToCancel}
-        onOpenChange={() => setAppointmentToCancel(null)}
+        onOpenChange={(open) => {
+          if (open === false) {
+            // Force a full page reload when dialog is closed without confirmation
+            window.location.reload();
+          }
+        }}
         title="Cancel Appointment"
         description="Are you sure you want to cancel this appointment? This action cannot be undone."
-        onConfirm={handleCancelAppointment}
-        loading={loading}
+        onConfirm={handleSimpleCancelAppointment}
+        isProcessing={loading}
+        confirmVariant="destructive"
       />
+      
+      {/* New cancellation dialog with reason field */}
+      <Dialog 
+        open={cancelDialogOpen} 
+        onOpenChange={(open) => {
+          if (open) {
+            setCancelDialogOpen(open);
+          } else {
+            // Force a full page reload when dialog is closed without confirmation
+            window.location.reload();
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this appointment? This action cannot be undone.
+              {selectedAppointment && (
+                <div className="mt-2 text-sm">
+                  <p><strong>Dentist:</strong> {selectedAppointment.dentist_name}</p>
+                  <p><strong>Service:</strong> {selectedAppointment.service_name}</p>
+                  <p><strong>Date/Time:</strong> {format(new Date(selectedAppointment.appointment_datetime), 'MMM d, yyyy')} at {format(new Date(selectedAppointment.appointment_datetime), 'h:mm a')}</p>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Label htmlFor="cancellation-reason" className="text-sm font-medium">
+              Cancellation Reason <span className="text-muted-foreground">(will be shared with the dentist)</span>
+            </Label>
+            <Textarea
+              id="cancellation-reason"
+              value={cancellationReason}
+              onChange={(e) => setCancellationReason(e.target.value)}
+              placeholder="Please provide a reason for cancellation..."
+              className="mt-1.5"
+            />
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={loading}>Cancel</Button>
+            </DialogClose>
+            <Button 
+              variant="destructive" 
+              onClick={handleCancelAppointment}
+              disabled={loading}
+            >
+              {loading ? 'Cancelling...' : 'Confirm Cancellation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={!!appointmentToAccept}
-        onOpenChange={() => setAppointmentToAccept(null)}
+        onOpenChange={(open) => {
+          if (open === false) {
+            // Force a full page reload when dialog is closed without confirmation
+            window.location.reload();
+          }
+        }}
         title="Confirm Appointment"
         description="Are you sure you want to accept this suggested appointment time?"
         onConfirm={handleAcceptSuggestion}
-        loading={loading}
+        isProcessing={loading}
       />
 
       <ConfirmDialog
         open={!!appointmentToDecline}
-        onOpenChange={() => setAppointmentToDecline(null)}
+        onOpenChange={(open) => {
+          if (open === false) {
+            // Force a full page reload when dialog is closed without confirmation
+            window.location.reload();
+          }
+        }}
         title="Decline Appointment"
         description="Are you sure you want to decline this suggested appointment time? This will cancel the appointment."
         onConfirm={handleDeclineSuggestion}
-        loading={loading}
+        isProcessing={loading}
+        confirmVariant="destructive"
       />
 
       <PageTemplate
         title="My Appointments"
-        description="View and manage your upcoming dental appointments."
         breadcrumbs={breadcrumbs}
       >
+        <p className="text-sm text-muted-foreground mb-4">View and manage your upcoming dental appointments.</p>
         <Card className="p-6">
           {appointments.length === 0 ? (
             <div className="py-8 text-center">
@@ -188,7 +318,7 @@ export default function Appointments() {
                 {appointments.map((appointment) => (
                   <TableRow key={appointment.id}>
                     <TableCell className="font-medium">{appointment.service_name}</TableCell>
-                    <TableCell>Dr. {appointment.dentist_name}</TableCell>
+                    <TableCell>{appointment.dentist_name}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="flex gap-1 items-center">
@@ -238,7 +368,7 @@ export default function Appointments() {
                                 <div className="">
                                   <button
                                     type="button"
-                                    onClick={() => setAppointmentToCancel(appointment.id)}
+                                    onClick={() => openCancelDialog(appointment)}
                                     className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
                                   >
                                     <div className="flex-grow text-sm font-medium text-left">Cancel</div>
@@ -254,7 +384,7 @@ export default function Appointments() {
                                 <div className="">
                                   <button
                                     type="button"
-                                    onClick={() => setAppointmentToCancel(appointment.id)}
+                                    onClick={() => openCancelDialog(appointment)}
                                     className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
                                   >
                                     <div className="flex-grow text-sm font-medium text-left">Cancel</div>

@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\DentalService;
 use App\Models\Patient;
+use App\Models\User;
+use App\Notifications\AppointmentStatusChangedNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
@@ -111,6 +114,9 @@ class AppointmentController extends Controller
             ->where('id', $id)
             ->firstOrFail();
             
+        // Store old status for notification
+        $oldStatus = $appointment->status;
+        
         // Update the appointment
         $appointment->status = $request->status;
         
@@ -123,6 +129,36 @@ class AppointmentController extends Controller
         }
         
         $appointment->save();
+        
+        // Send notification to patient about status change
+        try {
+            // Make sure we have the patient relationship loaded
+            if (!$appointment->relationLoaded('patient')) {
+                $appointment->load('patient.user');
+            }
+            
+            if ($appointment->patient && $appointment->patient->user) {
+                $appointment->patient->user->notify(new AppointmentStatusChangedNotification(
+                    $appointment,
+                    $oldStatus,
+                    $request->status === 'cancelled' ? $request->cancellation_reason : null
+                ));
+                
+                Log::info('Appointment status change notification sent', [
+                    'appointment_id' => $appointment->id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $appointment->status,
+                    'patient_id' => $appointment->patient->id
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log the error but don't interrupt the user flow
+            Log::error('Failed to send appointment status notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
         
         return redirect()->route('dentist.appointments.show', $appointment->id)
             ->with('success', 'Appointment status updated successfully.');
@@ -144,10 +180,42 @@ class AppointmentController extends Controller
         if ($appointment->status !== 'pending') {
             return back()->with('error', 'Only pending appointments can be confirmed.');
         }
+        
+        // Store old status for notification
+        $oldStatus = $appointment->status;
             
         // Update the appointment status to confirmed
         $appointment->status = 'confirmed';
         $appointment->save();
+        
+        // Send notification to patient about confirmation
+        try {
+            // Make sure we have the patient relationship loaded
+            if (!$appointment->relationLoaded('patient')) {
+                $appointment->load('patient.user');
+            }
+            
+            if ($appointment->patient && $appointment->patient->user) {
+                $appointment->patient->user->notify(new AppointmentStatusChangedNotification(
+                    $appointment,
+                    $oldStatus
+                ));
+                
+                Log::info('Appointment confirmation notification sent', [
+                    'appointment_id' => $appointment->id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $appointment->status,
+                    'patient_id' => $appointment->patient->id
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log the error but don't interrupt the user flow
+            Log::error('Failed to send appointment confirmation notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
         
         return redirect()->route('dentist.appointments')
             ->with('success', 'Appointment confirmed successfully.');
@@ -164,10 +232,42 @@ class AppointmentController extends Controller
         $appointment = Appointment::where('dentist_id', $dentistId)
             ->where('id', $id)
             ->firstOrFail();
+        
+        // Store old status for notification
+        $oldStatus = $appointment->status;
             
         // Update the appointment status to completed
         $appointment->status = 'completed';
         $appointment->save();
+        
+        // Send notification to patient about completion
+        try {
+            // Make sure we have the patient relationship loaded
+            if (!$appointment->relationLoaded('patient')) {
+                $appointment->load('patient.user');
+            }
+            
+            if ($appointment->patient && $appointment->patient->user) {
+                $appointment->patient->user->notify(new AppointmentStatusChangedNotification(
+                    $appointment,
+                    $oldStatus
+                ));
+                
+                Log::info('Appointment completion notification sent', [
+                    'appointment_id' => $appointment->id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $appointment->status,
+                    'patient_id' => $appointment->patient->id
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log the error but don't interrupt the user flow
+            Log::error('Failed to send appointment completion notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
         
         return redirect()->route('dentist.appointments')
             ->with('success', 'Appointment marked as completed.');
@@ -196,25 +296,64 @@ class AppointmentController extends Controller
             ->where('id', $id)
             ->firstOrFail();
             
-        // Only allow cancelling pending or suggested appointments
-        if (!in_array($appointment->status, ['pending', 'suggested'])) {
-            return back()->with('error', 'Only pending or suggested appointments can be cancelled.');
+        // Only allow cancelling pending, suggested, or confirmed appointments
+        if (!in_array($appointment->status, ['pending', 'suggested', 'confirmed'])) {
+            return back()->with('error', 'Only pending, suggested, or confirmed appointments can be cancelled.');
         }
+        
+        // Store old status for notification
+        $oldStatus = $appointment->status;
             
         // Update the appointment status to cancelled
         $appointment->status = 'cancelled';
         
+        // Set cancellation reason
+        $cancellationReason = '';
         if ($request->has('cancellation_reason')) {
             $appointment->cancellation_reason = $request->cancellation_reason;
+            $cancellationReason = $request->cancellation_reason;
         } else {
-            if ($appointment->status === 'suggested') {
-                $appointment->cancellation_reason = 'Suggestion cancelled by dentist';
+            if ($oldStatus === 'suggested') {
+                $cancellationReason = 'Suggestion cancelled by dentist';
+                $appointment->cancellation_reason = $cancellationReason;
             } else {
-                $appointment->cancellation_reason = 'Rejected by dentist';
+                $cancellationReason = 'Rejected by dentist';
+                $appointment->cancellation_reason = $cancellationReason;
             }
         }
         
         $appointment->save();
+        
+        // Send notification to patient about cancellation
+        try {
+            // Make sure we have the patient relationship loaded
+            if (!$appointment->relationLoaded('patient')) {
+                $appointment->load('patient.user');
+            }
+            
+            if ($appointment->patient && $appointment->patient->user) {
+                $appointment->patient->user->notify(new AppointmentStatusChangedNotification(
+                    $appointment,
+                    $oldStatus,
+                    $cancellationReason
+                ));
+                
+                Log::info('Appointment cancellation notification sent', [
+                    'appointment_id' => $appointment->id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $appointment->status,
+                    'reason' => $cancellationReason,
+                    'patient_id' => $appointment->patient->id
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log the error but don't interrupt the user flow
+            Log::error('Failed to send appointment cancellation notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
         
         return redirect()->route('dentist.appointments')
             ->with('success', 'Appointment rejected successfully.');
@@ -292,6 +431,36 @@ class AppointmentController extends Controller
         }
         
         $appointment->save();
+        
+        // Send notification to patient about the suggested new time
+        try {
+            // Make sure we have the patient relationship loaded
+            if (!$appointment->relationLoaded('patient')) {
+                $appointment->load('patient.user');
+            }
+            
+            if ($appointment->patient && $appointment->patient->user) {
+                $appointment->patient->user->notify(new AppointmentStatusChangedNotification(
+                    $appointment,
+                    'pending',
+                    $request->notes ?: 'Your dentist has suggested a new appointment time'
+                ));
+                
+                Log::info('Appointment reschedule notification sent', [
+                    'appointment_id' => $appointment->id,
+                    'old_datetime' => $oldDateTime,
+                    'new_datetime' => $appointment->appointment_datetime,
+                    'patient_id' => $appointment->patient->id
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log the error but don't interrupt the user flow
+            Log::error('Failed to send appointment reschedule notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
         
         return redirect()->route('dentist.appointments.show', $appointment->id)
             ->with('success', 'New appointment time suggested successfully. Waiting for patient confirmation.');

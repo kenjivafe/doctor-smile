@@ -1,6 +1,6 @@
 import { PageTemplate } from '@/components/page-template';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { 
   CalendarClock, 
@@ -14,6 +14,11 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from '@/components/ui/link';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import React from 'react';
 
 interface Appointment {
   id: number;
@@ -58,6 +63,36 @@ const formatStatus = (status: string) => {
 
 export default function AppointmentDetails() {
   const { appointment } = usePage().props as unknown as AppointmentDetailsProps;
+  
+  // State for cancellation dialog
+  const [cancelDialogOpen, setCancelDialogOpen] = React.useState(false);
+  const [cancellationReason, setCancellationReason] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  
+  // Function to handle opening the cancel dialog
+  const openCancelDialog = () => {
+    setCancelDialogOpen(true);
+  };
+  
+  // Function to handle cancellation submission
+  const handleCancelAppointment = () => {
+    setIsLoading(true);
+    
+    router.post(`/patient/appointments/${appointment.id}/cancel`, {
+      cancellation_reason: cancellationReason || 'Cancelled by patient'
+    }, {
+      onSuccess: () => {
+        setIsLoading(false);
+        setCancelDialogOpen(false);
+        // Refresh the page to update the appointment status
+        window.location.reload();
+      },
+      onError: (error) => {
+        console.error('Error cancelling appointment:', error);
+        setIsLoading(false);
+      },
+    });
+  };
   
   // Generate breadcrumbs with the current appointment
   const breadcrumbs: BreadcrumbItem[] = [
@@ -117,14 +152,14 @@ export default function AppointmentDetails() {
             <div className="mt-4 md:mt-0">
               {appointment.status === 'pending' && (
                 <div className="flex gap-2">
-                  <Link 
-                    href={`/patient/appointments/${appointment.id}/cancel`}
+                  <Button 
                     variant="destructive"
                     className="gap-2"
+                    onClick={openCancelDialog}
                   >
                     <AlertCircle className="h-4 w-4" />
                     Cancel Appointment
-                  </Link>
+                  </Button>
                 </div>
               )}
               
@@ -153,7 +188,23 @@ export default function AppointmentDetails() {
                 </div>
               )}
               
-              {(appointment.status === 'confirmed' || appointment.status === 'completed') && (
+              {appointment.status === 'confirmed' && (
+                <div className="flex gap-2">
+                  <Badge variant={getStatusBadgeVariant(appointment.status)} className="text-sm px-3 py-1 mr-2">
+                    {formatStatus(appointment.status)}
+                  </Badge>
+                  <Button 
+                    variant="destructive"
+                    className="gap-2"
+                    onClick={openCancelDialog}
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    Cancel Appointment
+                  </Button>
+                </div>
+              )}
+              
+              {appointment.status === 'completed' && (
                 <Badge variant={getStatusBadgeVariant(appointment.status)} className="text-sm px-3 py-1">
                   {formatStatus(appointment.status)}
                 </Badge>
@@ -233,6 +284,59 @@ export default function AppointmentDetails() {
           )}
         </Card>
       </PageTemplate>
+      
+      {/* Cancellation Dialog */}
+      <Dialog 
+        open={cancelDialogOpen} 
+        onOpenChange={(open) => {
+          if (open) {
+            setCancelDialogOpen(open);
+          } else {
+            // Force a full page reload when dialog is closed without confirmation
+            window.location.reload();
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this appointment? This action cannot be undone.
+              <div className="mt-2 text-sm">
+                <p><strong>Dentist:</strong> {appointment.dentist_name}</p>
+                <p><strong>Service:</strong> {appointment.service_name}</p>
+                <p><strong>Date/Time:</strong> {format(new Date(appointment.appointment_datetime), 'MMM d, yyyy')} at {format(new Date(appointment.appointment_datetime), 'h:mm a')}</p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Label htmlFor="cancellation-reason" className="text-sm font-medium">
+              Cancellation Reason <span className="text-muted-foreground">(will be shared with the dentist)</span>
+            </Label>
+            <Textarea
+              id="cancellation-reason"
+              value={cancellationReason}
+              onChange={(e) => setCancellationReason(e.target.value)}
+              placeholder="Please provide a reason for cancellation..."
+              className="mt-1.5"
+            />
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isLoading}>Cancel</Button>
+            </DialogClose>
+            <Button 
+              variant="destructive" 
+              onClick={handleCancelAppointment}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Cancelling...' : 'Confirm Cancellation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

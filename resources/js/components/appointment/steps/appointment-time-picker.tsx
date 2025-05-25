@@ -192,7 +192,10 @@ export function AppointmentTimePicker({
                       <Button
                         key={slot.time}
                         variant={selectedTime === slot.time ? "default" : "outline"}
-                        onClick={() => handleTimeSelect(slot.time)}
+                        onClick={(e) => {
+                          e.preventDefault(); // Prevent form submission
+                          handleTimeSelect(slot.time);
+                        }}
                         disabled={!slot.available}
                         className={`${!slot.available ? "opacity-50 cursor-not-allowed bg-gray-100" : ""} 
                         hover:bg-primary hover:text-primary-foreground transition-colors 
