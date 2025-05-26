@@ -23,6 +23,7 @@ return new class extends Migration
             $table->text('treatment_notes')->nullable();
             $table->decimal('cost', 10, 2)->nullable();
             $table->string('cancellation_reason')->nullable();
+            $table->boolean('is_paid')->default(false);
             $table->timestamps();
         });
     }

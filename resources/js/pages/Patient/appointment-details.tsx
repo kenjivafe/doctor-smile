@@ -2,13 +2,12 @@ import { PageTemplate } from '@/components/page-template';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { 
-  CalendarClock, 
-  Clock, 
-  Stethoscope, 
-  CreditCard, 
+import {
+  CalendarClock,
+  Clock,
+  Stethoscope,
+  CreditCard,
   AlertCircle,
-  ArrowLeft
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@/components/ui/link';
@@ -31,6 +30,7 @@ interface Appointment {
   notes?: string;
   treatment_notes?: string;
   cancellation_reason?: string;
+  is_paid?: boolean;
 }
 
 interface AppointmentDetailsProps {
@@ -63,21 +63,21 @@ const formatStatus = (status: string) => {
 
 export default function AppointmentDetails() {
   const { appointment } = usePage().props as unknown as AppointmentDetailsProps;
-  
+
   // State for cancellation dialog
   const [cancelDialogOpen, setCancelDialogOpen] = React.useState(false);
   const [cancellationReason, setCancellationReason] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
-  
+
   // Function to handle opening the cancel dialog
   const openCancelDialog = () => {
     setCancelDialogOpen(true);
   };
-  
+
   // Function to handle cancellation submission
   const handleCancelAppointment = () => {
     setIsLoading(true);
-    
+
     router.post(`/patient/appointments/${appointment.id}/cancel`, {
       cancellation_reason: cancellationReason || 'Cancelled by patient'
     }, {
@@ -93,7 +93,7 @@ export default function AppointmentDetails() {
       },
     });
   };
-  
+
   // Generate breadcrumbs with the current appointment
   const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -109,36 +109,26 @@ export default function AppointmentDetails() {
   // Format the appointment date and time for display
   const formatAppointmentDateTime = () => {
     const date = format(new Date(appointment.appointment_datetime), 'MMMM d, yyyy');
-    
+
     // Format time to be more user-friendly
     const timePart = appointment.appointment_datetime.split('T')[1].substring(0, 5);
     const [hours, minutes] = timePart.split(':').map(Number);
     const period = hours >= 12 ? 'PM' : 'AM';
     const displayHours = hours % 12 || 12;
     const time = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-    
+
     return { date, time };
   };
-  
+
   const { date, time } = formatAppointmentDateTime();
 
   return (
     <>
       <Head title={`Appointment Details #${appointment.id}`} />
       <PageTemplate title="Appointment Details" breadcrumbs={breadcrumbs}>
-        <div className="mb-4">
-          <Link 
-            href="/patient/appointments" 
-            variant="outline" 
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Appointments
-          </Link>
-        </div>
-        
+
         <Card className="p-6">
-          <div className="flex flex-col md:flex-row justify-between mb-6">
+          <div className="flex flex-col justify-between mb-6 md:flex-row">
             <div>
               <h2 className="text-2xl font-bold">{appointment.service_name}</h2>
               <div className="mt-2">
@@ -147,91 +137,89 @@ export default function AppointmentDetails() {
                 </Badge>
               </div>
             </div>
-            
+
+
             {/* Action buttons based on appointment status */}
             <div className="mt-4 md:mt-0">
               {appointment.status === 'pending' && (
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     variant="destructive"
                     className="gap-2"
                     onClick={openCancelDialog}
                   >
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="w-4 h-4" />
                     Cancel Appointment
                   </Button>
                 </div>
               )}
-              
+
               {appointment.status === 'suggested' && (
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Link 
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Link
                     href={`/patient/appointments/${appointment.id}/confirm-suggestion`}
                     method="post"
                     as="button"
                     variant="default"
                     className="gap-2"
                   >
-                    <CalendarClock className="h-4 w-4" />
+                    <CalendarClock className="w-4 h-4" />
                     Accept New Time
                   </Link>
-                  <Link 
+                  <Link
                     href={`/patient/appointments/${appointment.id}/decline-suggestion`}
                     method="post"
                     as="button"
                     variant="destructive"
                     className="gap-2"
                   >
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="w-4 h-4" />
                     Decline New Time
                   </Link>
                 </div>
               )}
-              
+
               {appointment.status === 'confirmed' && (
                 <div className="flex gap-2">
-                  <Badge variant={getStatusBadgeVariant(appointment.status)} className="text-sm px-3 py-1 mr-2">
-                    {formatStatus(appointment.status)}
-                  </Badge>
-                  <Button 
+                  <Button
                     variant="destructive"
                     className="gap-2"
                     onClick={openCancelDialog}
                   >
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="w-4 h-4" />
                     Cancel Appointment
                   </Button>
                 </div>
               )}
-              
+{/*
               {appointment.status === 'completed' && (
-                <Badge variant={getStatusBadgeVariant(appointment.status)} className="text-sm px-3 py-1">
+                <Badge variant={getStatusBadgeVariant(appointment.status)} className="px-3 py-1 text-sm">
                   {formatStatus(appointment.status)}
                 </Badge>
-              )}
+              )} */}
             </div>
           </div>
-          
+
           {/* Appointment Details Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 mx-6 mb-4 md:grid-cols-2">
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
+              <div className="flex gap-3 items-start">
                 <CalendarClock className="h-5 w-5 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium">Date</p>
                   <p className="text-muted-foreground">{date}</p>
                 </div>
               </div>
-              
-              <div className="flex items-start gap-3">
+
+              <div className="flex gap-3 items-start">
                 <Clock className="h-5 w-5 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium">Time</p>
                   <p className="text-muted-foreground">{time} ({appointment.duration_minutes} minutes)</p>
                 </div>
               </div>
-              
-              <div className="flex items-start gap-3">
+
+              <div className="flex gap-3 items-start">
                 <Stethoscope className="h-5 w-5 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium">Dentist</p>
@@ -239,18 +227,25 @@ export default function AppointmentDetails() {
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
+              <div className="flex gap-3 items-start">
                 <CreditCard className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium">Cost</p>
-                  <p className="text-muted-foreground">₱{appointment.cost}</p>
+                <div className="flex gap-2 items-center">
+                  <div>
+                    <p className="font-medium">Cost</p>
+                    <p className="text-muted-foreground">₱{appointment.cost}</p>
+                  </div>
+                  {typeof appointment.is_paid !== 'undefined' && (
+                    <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${appointment.is_paid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {appointment.is_paid ? 'Paid' : 'Unpaid'}
+                    </span>
+                  )}
                 </div>
               </div>
-              
+
               {appointment.status === 'cancelled' && appointment.cancellation_reason && (
-                <div className="flex items-start gap-3">
+                <div className="flex gap-3 items-start">
                   <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
                   <div>
                     <p className="font-medium">Cancellation Reason</p>
@@ -260,23 +255,23 @@ export default function AppointmentDetails() {
               )}
             </div>
           </div>
-          
+
           {/* Notes Section */}
           {(appointment.notes || appointment.treatment_notes) && (
             <>
-              <Separator className="my-6" />
-              <div className="space-y-6">
+              <Separator className="my-4" />
+              <div className="mx-6 mb-6 space-y-6">
                 {appointment.notes && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Notes</h3>
-                    <p className="text-muted-foreground whitespace-pre-line">{appointment.notes}</p>
+                    <h3 className="mb-2 text-lg font-semibold">Notes</h3>
+                    <p className="whitespace-pre-line text-muted-foreground">{appointment.notes}</p>
                   </div>
                 )}
-                
+
                 {appointment.treatment_notes && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Treatment Notes</h3>
-                    <p className="text-muted-foreground whitespace-pre-line">{appointment.treatment_notes}</p>
+                    <h3 className="mb-2 text-lg font-semibold">Treatment Notes</h3>
+                    <p className="whitespace-pre-line text-muted-foreground">{appointment.treatment_notes}</p>
                   </div>
                 )}
               </div>
@@ -284,10 +279,10 @@ export default function AppointmentDetails() {
           )}
         </Card>
       </PageTemplate>
-      
+
       {/* Cancellation Dialog */}
-      <Dialog 
-        open={cancelDialogOpen} 
+      <Dialog
+        open={cancelDialogOpen}
         onOpenChange={(open) => {
           if (open) {
             setCancelDialogOpen(open);
@@ -309,7 +304,7 @@ export default function AppointmentDetails() {
               </div>
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <Label htmlFor="cancellation-reason" className="text-sm font-medium">
               Cancellation Reason <span className="text-muted-foreground">(will be shared with the dentist)</span>
@@ -322,13 +317,13 @@ export default function AppointmentDetails() {
               className="mt-1.5"
             />
           </div>
-          
+
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" disabled={isLoading}>Cancel</Button>
             </DialogClose>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleCancelAppointment}
               disabled={isLoading}
             >

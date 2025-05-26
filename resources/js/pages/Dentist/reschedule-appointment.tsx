@@ -5,7 +5,7 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft } from 'lucide-react';
+// import { ArrowLeft } from 'lucide-react';
 import { Link } from '@/components/ui/link';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
@@ -187,8 +187,8 @@ export default function RescheduleAppointment() {
                 Cancel
               </Link>
               {appointment.status === 'suggested' && (
-                <form 
-                  method="POST" 
+                <form
+                  method="POST"
                   action={`/dentist/appointments/${id}/cancel`}
                   onSubmit={(e) => {
                     if (!confirm('Are you sure you want to cancel this suggestion?')) {
@@ -201,7 +201,7 @@ export default function RescheduleAppointment() {
                 >
                   <input type="hidden" name="_token" value={csrfToken} />
                   <input type="hidden" name="_method" value="POST" />
-                  <button 
+                  <button
                     type="submit"
                     className="inline-flex justify-center items-center px-4 py-2 text-sm font-medium text-red-600 bg-white rounded-md border border-input hover:bg-red-600 hover:text-white"
                   >

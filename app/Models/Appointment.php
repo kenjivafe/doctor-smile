@@ -26,6 +26,7 @@ class Appointment extends Model
         'treatment_notes',
         'cost',
         'cancellation_reason',
+        'is_paid',
     ];
 
     /**
@@ -37,6 +38,7 @@ class Appointment extends Model
         'appointment_datetime' => 'datetime',
         'cost' => 'decimal:2',
         'duration_minutes' => 'integer',
+        'is_paid' => 'boolean',
     ];
 
     /**

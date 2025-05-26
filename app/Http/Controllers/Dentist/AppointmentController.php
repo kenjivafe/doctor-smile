@@ -11,6 +11,7 @@ use App\Notifications\AppointmentStatusChangedNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
@@ -48,6 +49,7 @@ class AppointmentController extends Controller
                     'status' => $appointment->status,
                     'duration_minutes' => $appointment->duration_minutes,
                     'cost' => number_format((float)$appointment->cost, 2),
+                    'is_paid' => $appointment->is_paid,
                 ];
             });
 
@@ -84,6 +86,7 @@ class AppointmentController extends Controller
             'notes' => $appointment->notes,
             'treatment_notes' => $appointment->treatment_notes,
             'cancellation_reason' => $appointment->cancellation_reason,
+            'is_paid' => $appointment->is_paid,
         ];
 
         return Inertia::render('Dentist/appointment-details', [
@@ -119,6 +122,15 @@ class AppointmentController extends Controller
         
         // Update the appointment
         $appointment->status = $request->status;
+
+        // If rejected/cancelled and not paid, refund the balance
+        if (in_array($request->status, ['cancelled', 'rejected']) && !$appointment->is_paid) {
+            $patient = $appointment->patient;
+            if ($patient) {
+                $patient->balance -= $appointment->cost;
+                $patient->save();
+            }
+        }
         
         if ($request->has('treatment_notes')) {
             $appointment->treatment_notes = $request->treatment_notes;
@@ -464,5 +476,63 @@ class AppointmentController extends Controller
         
         return redirect()->route('dentist.appointments.show', $appointment->id)
             ->with('success', 'New appointment time suggested successfully. Waiting for patient confirmation.');
+    }
+    
+    /**
+     * Toggle the payment status of an appointment
+     */
+    public function togglePaymentStatus(int $id)
+    {
+        $dentistId = Auth::id();
+        
+        // Find the appointment and ensure it belongs to the current dentist
+        $appointment = Appointment::with('patient')
+            ->where('dentist_id', $dentistId)
+            ->where('id', $id)
+            ->firstOrFail();
+        
+        // Only allow toggling payment for confirmed or completed appointments
+        if (!in_array($appointment->status, ['confirmed', 'completed'])) {
+            return back()->with('error', 'Only confirmed or completed appointments can be marked as paid.');
+        }
+        
+        // Toggle the payment status and update patient balance using a transaction
+        try {
+            DB::beginTransaction();
+            
+            $oldPaymentStatus = $appointment->is_paid;
+            $appointment->is_paid = !$oldPaymentStatus;
+            
+            // If appointment is being marked as paid, decrease patient balance
+            // If appointment is being marked as unpaid, increase patient balance
+            if ($appointment->patient) {
+                if ($appointment->is_paid) {
+                    // Mark as paid: decrease balance
+                    $appointment->patient->balance -= $appointment->cost;
+                } else {
+                    // Mark as unpaid: increase balance
+                    $appointment->patient->balance += $appointment->cost;
+                }
+                
+                $appointment->patient->save();
+            }
+            
+            $appointment->save();
+            
+            DB::commit();
+            
+            $message = $appointment->is_paid ? 'Appointment marked as paid' : 'Appointment marked as unpaid';
+            return back()->with('success', $message);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to update payment status', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->with('error', 'There was an error updating the payment status.');
+        }
     }
 }

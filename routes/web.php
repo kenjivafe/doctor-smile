@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::get('appointments/{id}/confirm', 'confirm')->name('dentist.appointments.confirm');
             Route::get('appointments/{id}/complete', 'complete')->name('dentist.appointments.complete');
             Route::post('appointments/{id}/cancel', 'cancel')->name('dentist.appointments.cancel');
+            Route::post('appointments/{id}/toggle-payment', 'togglePaymentStatus')->name('dentist.appointments.toggle-payment');
             
             // API endpoint for available time slots
             Route::get('api/available-slots', [\App\Http\Controllers\Patient\AppointmentController::class, 'getAvailableTimeSlots'])->name('dentist.api.available-slots');

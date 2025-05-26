@@ -166,15 +166,62 @@ class DashboardController extends Controller
         $appointments = $missingPatientRecord ? [] : Appointment::with(['dentist', 'dentalService'])
             ->where('patient_id', $patient->id)
             ->orderBy('appointment_datetime', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($appointment) {
+                // Get dentist name from the relationship
+                $dentistName = 'Doctor';
+                if ($appointment->dentist) {
+                    // The dentist relationship already points to the User model
+                    $dentistName = 'Dr. ' . $appointment->dentist->name;
+                }
+                
+                return [
+                    'id' => $appointment->id,
+                    'appointment_datetime' => $appointment->appointment_datetime,
+                    'status' => $appointment->status,
+                    'duration_minutes' => $appointment->duration_minutes,
+                    'notes' => $appointment->notes,
+                    'cost' => $appointment->cost,
+                    'service_name' => $appointment->dentalService ? $appointment->dentalService->name : 'Dental service',
+                    'dentist_name' => $dentistName,
+                    // Also include the original relationships for compatibility
+                    'dentist' => $appointment->dentist,
+                    'dentalService' => $appointment->dentalService,
+                ];
+            });
 
         // Fetch next upcoming appointment
-        $nextAppointment = $missingPatientRecord ? null : Appointment::with(['dentist', 'dentalService'])
+        $nextAppointmentObj = $missingPatientRecord ? null : Appointment::with(['dentist', 'dentalService'])
             ->where('patient_id', $patient->id)
             ->where('status', 'confirmed')
             ->where('appointment_datetime', '>', Carbon::now())
             ->orderBy('appointment_datetime')
             ->first();
+            
+        // Format the next appointment
+        $nextAppointment = null;
+        if ($nextAppointmentObj) {
+            // Get dentist name from the relationship
+            $dentistName = 'Doctor';
+            if ($nextAppointmentObj->dentist) {
+                // The dentist relationship already points to the User model
+                $dentistName = 'Dr. ' . $nextAppointmentObj->dentist->name;
+            }
+            
+            $nextAppointment = [
+                'id' => $nextAppointmentObj->id,
+                'appointment_datetime' => $nextAppointmentObj->appointment_datetime,
+                'status' => $nextAppointmentObj->status,
+                'duration_minutes' => $nextAppointmentObj->duration_minutes,
+                'notes' => $nextAppointmentObj->notes,
+                'cost' => $nextAppointmentObj->cost,
+                'service_name' => $nextAppointmentObj->dentalService ? $nextAppointmentObj->dentalService->name : 'Dental service',
+                'dentist_name' => $dentistName,
+                // Also include the original relationships for compatibility
+                'dentist' => $nextAppointmentObj->dentist,
+                'dentalService' => $nextAppointmentObj->dentalService,
+            ];
+        }
 
         // Fetch dental services for potential new appointments
         $dentalServices = DentalService::where('is_active', true)

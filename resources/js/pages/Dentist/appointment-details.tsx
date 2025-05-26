@@ -24,6 +24,7 @@ import { useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 interface Appointment {
   id: number;
@@ -38,6 +39,7 @@ interface Appointment {
   notes?: string;
   treatment_notes?: string;
   cancellation_reason?: string;
+  is_paid?: boolean;
 }
 
 interface AppointmentDetailsProps {
@@ -76,6 +78,7 @@ export default function AppointmentDetails() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPaidLoading, setIsPaidLoading] = useState(false);
 
   const form = useForm({
     treatment_notes: appointment.treatment_notes || '',
@@ -147,16 +150,6 @@ export default function AppointmentDetails() {
     <>
       <Head title={`Appointment Details #${appointment.id}`} />
       <PageTemplate title="Appointment Details" breadcrumbs={breadcrumbs}>
-        {/* <div className="mb-4">
-          <Link
-            href="/dentist/appointments"
-            variant="outline"
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Appointments
-          </Link>
-        </div> */}
 
         <Card className="p-6">
           <div className="flex flex-col justify-between mb-6 md:flex-row">
@@ -241,7 +234,7 @@ export default function AppointmentDetails() {
           </div>
 
           {/* Patient Information Section */}
-          <div className="mb-6">
+          <div className="mx-6 mb-6">
             <h3 className="mb-4 text-lg font-semibold">Patient Information</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex gap-3 items-start">
@@ -272,10 +265,10 @@ export default function AppointmentDetails() {
             </div>
           </div>
 
-          <Separator className="mb-6" />
+          <Separator className="mb-4" />
 
           {/* Appointment Details Section */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 mx-6 md:grid-cols-2">
             <div className="space-y-4">
               <div className="flex gap-3 items-start">
                 <CalendarClock className="h-5 w-5 text-primary mt-0.5" />
@@ -297,9 +290,37 @@ export default function AppointmentDetails() {
             <div className="space-y-4">
               <div className="flex gap-3 items-start">
                 <CreditCard className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium">Cost</p>
-                  <p className="text-muted-foreground">₱{appointment.cost}</p>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">Cost</p>
+                      <p className="text-muted-foreground">₱{appointment.cost}</p>
+                    </div>
+
+                    {(['confirmed', 'completed'].includes(appointment.status)) && (
+                      <div className="flex items-center space-x-2">
+                        <Label htmlFor="payment-status" className="text-muted-foreground">
+                          {isPaidLoading ? 'Updating...' : (appointment.is_paid ? 'Paid' : 'Unpaid')}
+                        </Label>
+                        <Switch
+                          id="payment-status"
+                          checked={appointment.is_paid}
+                          disabled={isPaidLoading}
+                          onCheckedChange={() => {
+                            setIsPaidLoading(true);
+                            router.post(`/dentist/appointments/${appointment.id}/toggle-payment`, {}, {
+                              onSuccess: () => {
+                                setIsPaidLoading(false);
+                              },
+                              onError: () => {
+                                setIsPaidLoading(false);
+                              }
+                            });
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -316,8 +337,8 @@ export default function AppointmentDetails() {
           </div>
 
           {/* Notes Section */}
-          <Separator className="my-6" />
-          <div className="space-y-6">
+          <Separator className="my-4" />
+          <div className="mx-6 mb-4 space-y-4">
             {appointment.notes && (
               <div>
                 <h3 className="mb-2 text-lg font-semibold">Patient Notes</h3>

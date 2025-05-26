@@ -93,6 +93,7 @@ class AppointmentController extends Controller
             'notes' => $appointment->notes,
             'treatment_notes' => $appointment->treatment_notes,
             'cancellation_reason' => $appointment->cancellation_reason,
+            'is_paid' => $appointment->is_paid,
         ];
 
         return Inertia::render('Patient/appointment-details', [
@@ -265,6 +266,7 @@ class AppointmentController extends Controller
                 $appointment->status = 'pending'; // Initial status is pending until dentist reviews
                 $appointment->notes = $request->notes;
                 $appointment->cost = $dentalService->price; // Set the cost from the dental service price
+                $appointment->is_paid = false; // Default to unpaid
 
                 // Log the appointment data before saving
                 Log::info('Attempting to save appointment with data', [
@@ -277,7 +279,14 @@ class AppointmentController extends Controller
                     'cost' => $appointment->cost,
                 ]);
 
+                DB::beginTransaction();
                 $appointment->save();
+                // Increment patient balance only if not paid
+                if (!$appointment->is_paid) {
+                    $patient->balance += $appointment->cost;
+                    $patient->save();
+                }
+                DB::commit();
 
                 Log::info('Appointment created successfully', ['appointment_id' => $appointment->id]);
                 
@@ -562,6 +571,12 @@ class AppointmentController extends Controller
         // Only allow cancellation of pending, suggested, or confirmed appointments
         if (!in_array($appointment->status, ['pending', 'suggested', 'confirmed'])) {
             return back()->with('error', 'This appointment cannot be cancelled.');
+        }
+
+        // Refund balance if not paid
+        if (!$appointment->is_paid) {
+            $patient->balance -= $appointment->cost;
+            $patient->save();
         }
 
         // No time restriction for cancellations

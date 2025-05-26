@@ -62,13 +62,13 @@ export default function PatientDetails({ patient, appointments = [] }: PatientDe
   const patientId = hasPatientData && patient?.id ? patient.id : 0;
   const patientEmail = hasPatientData && patient?.email ? patient.email : 'No Email';
   const patientPhone = hasPatientData && patient?.phone_number ? patient.phone_number : 'Not provided';
-  
+
   // Capitalize gender for display
   const formatGender = (gender: string | null | undefined): string => {
     if (!gender) return 'Not specified';
     return gender.charAt(0).toUpperCase() + gender.slice(1);
   };
-  
+
   const patientGender = hasPatientData && patient?.gender ? formatGender(patient.gender) : 'Not specified';
   const patientDob = hasPatientData && patient?.date_of_birth ? patient.date_of_birth : null;
   const patientAddress = hasPatientData && patient?.address ? patient.address : 'Not specified';
@@ -186,7 +186,7 @@ export default function PatientDetails({ patient, appointments = [] }: PatientDe
   }
 
   return (
-    <PageTemplate title="" breadcrumbs={breadcrumbs}>
+    <PageTemplate title="Patient Details" breadcrumbs={breadcrumbs}>
       <div className="space-y-6 mt-[-2rem]">
         {/* Patient Overview Card */}
         <Card className="p-6">

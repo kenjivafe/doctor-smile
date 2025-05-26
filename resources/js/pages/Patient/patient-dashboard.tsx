@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Clock, FileCheck, CalendarCheck, UserRound, CreditCard } from 'lucide-react';
+import { CalendarDays, Clock, FileCheck, CalendarCheck, UserRound, CreditCard, Info } from 'lucide-react';
 import { Head, usePage, Link } from '@inertiajs/react';
 import { PageProps } from '@inertiajs/core';
 import AppLayout from '@/layouts/app-layout';
@@ -27,6 +27,8 @@ interface PatientDashboardProps extends PageProps {
         created_at?: string;
         updated_at?: string;
         balance?: number | null; // Add null to the type
+        suggested_next_appointment?: string;
+        next_appointment_reason?: string;
     };
     appointments?: Array<{
         id: number;
@@ -50,6 +52,8 @@ interface PatientDashboardProps extends PageProps {
         status?: string;
         notes?: string;
         cost?: number;
+        dentist_name?: string;
+        service_name?: string;
     }>;
     nextAppointment?: {
         id?: number;
@@ -98,17 +102,17 @@ const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructiv
         case 'completed':
             return 'secondary';
         case 'confirmed':
-            return 'default';
-        case 'scheduled':
+            return 'default'; // Will be handled as primary in UI
+        case 'pending':
+            return 'warning';
+        case 'suggested':
             return 'warning';
         case 'cancelled':
             return 'destructive';
         case 'no_show':
-            return 'warning';
-        case 'rescheduled':
-            return 'outline';
+            return 'destructive';
         default:
-            return 'outline';
+            return 'warning';
     }
 };
 
@@ -152,19 +156,31 @@ export default function PatientDashboard() {
 
     // Helper to safely get nested object properties
     const getNextAppointmentData = () => {
-        if (!nextAppointment) return {
-            dentistName: '',
-            dateTime: '',
-            hasAppointment: false
-        };
-
+    // Prefer suggested_next_appointment from patientDetails if present
+    if (safePatientDetails.suggested_next_appointment) {
         return {
-            dentistName: nextAppointment.dentist?.user?.name || '',
-            serviceName: nextAppointment.dentalService?.name || '',
-            dateTime: nextAppointment.appointment_datetime || '',
-            hasAppointment: !!nextAppointment.appointment_datetime
+            dentistName: '', // Not available from patientDetails
+            serviceName: '', // Not available from patientDetails
+            dateTime: safePatientDetails.suggested_next_appointment,
+            reason: safePatientDetails.next_appointment_reason || '',
+            hasAppointment: true
         };
+    }
+    if (!nextAppointment) return {
+        dentistName: '',
+        serviceName: '',
+        dateTime: '',
+        reason: '',
+        hasAppointment: false
     };
+    return {
+        dentistName: nextAppointment.dentist?.user?.name || '',
+        serviceName: nextAppointment.dentalService?.name || '',
+        dateTime: nextAppointment.appointment_datetime || '',
+        reason: nextAppointment.notes || '',
+        hasAppointment: !!nextAppointment.appointment_datetime
+    };
+};
 
     const nextAppointmentData = getNextAppointmentData();
 
@@ -242,7 +258,7 @@ export default function PatientDashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Patient Dashboard" />
-            <div className="flex flex-col flex-1 p-8 space-y-8 h-full">
+            <div className="flex flex-col flex-1 p-8 space-y-4 h-full">
                 <div className="flex justify-between items-center">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Welcome back, {patientName}!</h2>
@@ -305,25 +321,34 @@ export default function PatientDashboard() {
                             </p>
                         </CardContent>
                         <CardFooter>
-                            <Button variant="outline" size="sm" className="w-full">View History</Button>
+                            <Button variant="outline" size="sm" className="w-full" asChild>
+                                <Link href="/patient/appointments">View History</Link>
+                            </Button>
                         </CardFooter>
                     </Card>
 
-                    <Card>
+                    <Card className="flex flex-col h-full">
                         <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Next Suggested Visit</CardTitle>
                             <CalendarCheck className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="flex flex-col flex-1 justify-start">
                             <div className="text-2xl font-bold">
                                 {nextAppointmentData.dateTime ? formatDate(nextAppointmentData.dateTime) : 'None scheduled'}
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                                Dr. {nextAppointmentData.dentistName} · {nextAppointmentData.serviceName}
-                            </p>
+                            {nextAppointmentData.reason && (
+                                <p className="text-xs text-muted-foreground">{nextAppointmentData.reason}</p>
+                            )}
+                            {(nextAppointmentData.dentistName || nextAppointmentData.serviceName) && (
+                                <p className="text-xs text-muted-foreground">
+                                    {nextAppointmentData.dentistName && <>Dr. {nextAppointmentData.dentistName}</>}{nextAppointmentData.dentistName && nextAppointmentData.serviceName && ' · '}{nextAppointmentData.serviceName}
+                                </p>
+                            )}
                         </CardContent>
-                        <CardFooter>
-                            <Button variant="outline" size="sm" className="w-full">Book Now</Button>
+                        <CardFooter className="mt-auto">
+                            <Button variant="outline" size="sm" className="w-full" asChild>
+                                <Link href={route('patient.book-appointment')}>Book Now</Link>
+                            </Button>
                         </CardFooter>
                     </Card>
 
@@ -336,19 +361,30 @@ export default function PatientDashboard() {
                             <div className="text-2xl font-bold">
                                 {getBalanceDisplayText()}
                             </div>
-                            <p className="mt-1 text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                                 {getBalanceDescription()}
                             </p>
                         </CardContent>
                         <CardFooter>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full"
-                                disabled={isBalanceZero()}
-                            >
-                                {isNewUser() && isBalanceZero() ? 'No Payments Due' : 'Pay Now'}
-                            </Button>
+                                {/* Payment info message instead of Pay Now button */}
+                                {isBalanceZero() ? (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full"
+                                        disabled
+                                    >
+                                        No Payments Due
+                                    </Button>
+                                ) : (
+                                    <div className="flex gap-1 justify-center items-center py-2 w-full text-xs text-center text-muted-foreground">
+                                        <span className="inline-flex relative items-center">
+  <Info className="inline w-3 h-3 text-muted-foreground/70" aria-label="Info" />
+  <span className="sr-only">Please pay at the clinic reception.</span>
+</span>
+Payments are handled at the clinic.
+</div>
+                                )}
                         </CardFooter>
                     </Card>
                 </div>
@@ -378,10 +414,10 @@ export default function PatientDashboard() {
                                                 </Badge>
                                             </div>
                                             <div className="text-sm font-medium">
-                                                {appointment.dentalService?.name || 'Dental service'}
+                                                {appointment.service_name || appointment.dentalService?.name || 'Dental service'}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                Dr. {appointment.dentist?.user?.name || 'Unknown'} · {appointment.duration_minutes || 30} min
+                                                {appointment.dentist_name || (appointment.dentist?.user?.name ? `Dr. ${appointment.dentist.user.name}` : 'Doctor')} · {appointment.duration_minutes || 30} min
                                             </div>
                                             {appointment.notes && (
                                                 <div className="mt-2 text-sm">
@@ -393,8 +429,9 @@ export default function PatientDashboard() {
                                                     ₱{parseFloat(String(appointment.cost || appointment.dentalService?.cost || 0)).toFixed(2)}
                                                 </div>
                                                 <div className="flex space-x-2">
-                                                    <Button size="sm" variant="outline">Reschedule</Button>
-                                                    <Button size="sm" variant="outline">Cancel</Button>
+                                                    <Button size="sm" variant="outline" asChild>
+                                                        <Link href={route('patient.appointments.show', appointment.id)}>View</Link>
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -406,7 +443,9 @@ export default function PatientDashboard() {
                                         <p className="text-sm text-muted-foreground">
                                             You don't have any appointments scheduled for today.
                                         </p>
-                                        <Button className="mt-4" size="sm">Book Appointment</Button>
+                                        <Button className="mt-4" size="sm" asChild>
+                                            <Link href={route('patient.book-appointment')}>Book Appointment</Link>
+                                        </Button>
                                     </div>
                                 )}
                             </div>
@@ -437,18 +476,19 @@ export default function PatientDashboard() {
                                                 </Badge>
                                             </div>
                                             <div className="text-sm font-medium">
-                                                {appointment.dentalService?.name || 'Dental service'}
+                                                {appointment.service_name || appointment.dentalService?.name || 'Dental service'}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                Dr. {appointment.dentist?.user?.name || 'Unknown'} · {formatTime(appointment.appointment_datetime)} · {appointment.duration_minutes || 30} min
+                                                {appointment.dentist_name || (appointment.dentist?.user?.name ? `Dr. ${appointment.dentist.user.name}` : 'Doctor')} · {formatTime(appointment.appointment_datetime)} · {appointment.duration_minutes || 30} min
                                             </div>
                                             <div className="flex justify-between pt-2">
                                                 <div className="font-medium">
-                                                    ₱{parseFloat(String(appointment.dentalService?.cost || 0)).toFixed(2)}
+                                                    ₱{parseFloat(String(appointment.cost || appointment.dentalService?.cost || 0)).toFixed(2)}
                                                 </div>
                                                 <div className="flex space-x-2">
-                                                    <Button size="sm" variant="outline">Reschedule</Button>
-                                                    <Button size="sm" variant="outline">Cancel</Button>
+                                                    <Button size="sm" variant="outline" asChild>
+                                                        <Link href={route('patient.appointments.show', appointment.id)}>View</Link>
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -460,7 +500,9 @@ export default function PatientDashboard() {
                                         <p className="text-sm text-muted-foreground">
                                             You don't have any appointments scheduled in the near future.
                                         </p>
-                                        <Button className="mt-4" size="sm">Book Appointment</Button>
+                                        <Button className="mt-4" size="sm" asChild>
+    <Link href={route('patient.book-appointment')}>Book Appointment</Link>
+</Button>
                                     </div>
                                 )}
                             </div>

@@ -13,8 +13,7 @@ import {
     LayoutGrid, 
     Stethoscope, 
     Users, 
-    LineChart,
-    ClipboardList
+    LineChart
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -75,11 +74,7 @@ const dentistNavItems: NavItem[] = [
         href: '/dentist/patients',
         icon: Users,
     },
-    {
-        title: 'Medical Records',
-        href: '/dentist/records',
-        icon: ClipboardList,
-    }
+
 ];
 
 // Patient-specific navigation items
@@ -94,11 +89,6 @@ const patientNavItems: NavItem[] = [
         title: 'My Appointments',
         href: '/patient/appointments',
         icon: Clock,
-    },
-    {
-        title: 'Medical Records',
-        href: '/patient/records',
-        icon: ClipboardList,
     },
 
 ];
