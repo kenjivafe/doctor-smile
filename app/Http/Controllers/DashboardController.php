@@ -99,12 +99,44 @@ class DashboardController extends Controller
         $dentistId = Auth::id();
         $today = Carbon::now()->format('Y-m-d');
 
+        // Helper function to format appointment data consistently
+        $formatAppointment = function ($appointment) {
+            return [
+                'id' => $appointment->id,
+                'patient_id' => $appointment->patient_id,
+                'dental_service_id' => $appointment->dental_service_id,
+                'appointment_datetime' => $appointment->appointment_datetime,
+                'duration_minutes' => $appointment->duration_minutes,
+                'status' => $appointment->status,
+                'notes' => $appointment->notes,
+                'treatment_notes' => $appointment->treatment_notes,
+                'cost' => $appointment->cost,
+                'cancellation_reason' => $appointment->cancellation_reason,
+                'created_at' => $appointment->created_at,
+                'updated_at' => $appointment->updated_at,
+                'patient' => $appointment->patient ? [
+                    'id' => $appointment->patient->id,
+                    'user' => $appointment->patient->user ? [
+                        'name' => $appointment->patient->user->name,
+                        'email' => $appointment->patient->user->email
+                    ] : null,
+                    'phone_number' => $appointment->patient->phone_number ?? ''
+                ] : null,
+                'dentalService' => $appointment->dentalService ? [
+                    'name' => $appointment->dentalService->name,
+                    'price' => $appointment->dentalService->price ?? $appointment->dentalService->cost ?? 0,
+                    'cost' => $appointment->dentalService->cost ?? $appointment->dentalService->price ?? 0
+                ] : null
+            ];
+        };
+        
         // Fetch today's appointments for the dentist
         $todaysAppointments = Appointment::with(['patient.user', 'dentalService'])
             ->where('dentist_id', $dentistId)
             ->whereDate('appointment_datetime', $today)
             ->orderBy('appointment_datetime')
-            ->get();
+            ->get()
+            ->map($formatAppointment);
 
         // Fetch upcoming appointments
         $upcomingAppointments = Appointment::with(['patient.user', 'dentalService'])
@@ -113,7 +145,8 @@ class DashboardController extends Controller
             ->where('appointment_datetime', '>', Carbon::now())
             ->orderBy('appointment_datetime')
             ->limit(10)
-            ->get();
+            ->get()
+            ->map($formatAppointment);
 
         // Next 7 days for appointment scheduling
         $nextSevenDays = [];
