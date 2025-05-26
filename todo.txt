@@ -1,5 +1,5 @@
 ===== DOCTOR SMILE DENTAL CLINIC APP - DEVELOPMENT TRACKER =====
-Last Updated: 2025-05-25 22:25
+Last Updated: 2025-05-27 00:11
 
 This file tracks development progress and planned tasks for the Doctor Smile application.
 Update this file whenever changes are made to maintain continuity across development sessions.
@@ -42,6 +42,8 @@ Update this file whenever changes are made to maintain continuity across develop
 - [x] Implemented email notification system for appointments (2025-05-25)
 - [x] Added cancellation dialogs with reason fields for both patients and dentists (2025-05-25)
 - [x] Enhanced user experience with consistent cancellation flow across the application (2025-05-25)
+- [x] Removed specialty field from dentist forms to align with database schema (2025-05-27)
+- [x] Improved dentist form layouts with contact number and years of experience side by side (2025-05-27)
 
 == IN PROGRESS ==
 - [ ] Admin panel implementation

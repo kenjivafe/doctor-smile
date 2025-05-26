@@ -98,5 +98,18 @@ class User extends Authenticatable
         return $this->hasMany(Appointment::class, 'dentist_id');
     }
 
-
+    /**
+     * Get the appointments for the user based on their role.
+     */
+    public function appointments(): HasMany
+    {
+        if ($this->isDentist()) {
+            return $this->hasMany(Appointment::class, 'dentist_id');
+        } elseif ($this->isPatient()) {
+            return $this->hasMany(Appointment::class, 'patient_id');
+        }
+        
+        // For admin or other roles, return an empty relationship
+        return $this->hasMany(Appointment::class, 'dentist_id')->whereRaw('1 = 0');
+    }
 }

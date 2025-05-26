@@ -52,6 +52,8 @@ Doctor Smile is a modern dental clinic appointment system designed to streamline
 - ✅ Appointment cancellation system with reason tracking
 - ✅ Email notification system for appointments and reminders
 - ✅ Comprehensive cancellation dialogs for both patients and dentists
+- ✅ Removed specialty field from dentist forms to align with database schema
+- ✅ Improved dentist form layouts for better user experience
 
 ### In Progress
 - 🔄 Admin panel implementation with enhanced permissions

@@ -78,6 +78,42 @@ interface DentistDashboardProps extends PageProps {
     userRole?: string;
 }
 
+// Custom scrollbar styles for this component
+const scrollbarStyles = `
+    .dark .dentist-dashboard ::-webkit-scrollbar-track {
+        background: #27272a !important;
+        border-radius: 5px;
+    }
+    
+    .dark .dentist-dashboard ::-webkit-scrollbar-thumb {
+        background: #52525b !important;
+        border-radius: 5px;
+    }
+    
+    .dark .dentist-dashboard ::-webkit-scrollbar-thumb:hover {
+        background: #71717a !important;
+    }
+    
+    .dentist-dashboard ::-webkit-scrollbar-track {
+        background: #f1f1f1 !important;
+        border-radius: 5px;
+    }
+    
+    .dentist-dashboard ::-webkit-scrollbar-thumb {
+        background: #c1c1c1 !important;
+        border-radius: 5px;
+    }
+    
+    .dentist-dashboard ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8 !important;
+    }
+    
+    .dentist-dashboard ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+`;
+
 export default function DentistDashboard() {
     // Get the page props with proper typing
     const { auth, todaysAppointments, upcomingAppointments, appointmentCounts } = usePage<DentistDashboardProps>().props;
@@ -261,10 +297,13 @@ export default function DentistDashboard() {
     };
 
     return (
+        <>
+            {/* Apply custom scrollbar styles */}
+            <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dentist Dashboard" />
 
-            <div className="flex flex-col flex-1 p-8 space-y-4 h-full">
+            <div className="flex flex-col flex-1 p-8 space-y-4 h-full dentist-dashboard">
                 <div className="flex justify-between items-center">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Welcome back, Dr. {safeDentistName}</h2>
@@ -385,7 +424,7 @@ export default function DentistDashboard() {
                                             </div>
                                         </div>
                                     )) : (
-                                        <div className="flex justify-center py-8 text-muted-foreground">
+                                        <div className="flex justify-center py-8 text-muted-foreground dark:text-muted-foreground">
                                             No appointments scheduled for today
                                         </div>
                                     )
@@ -416,7 +455,7 @@ export default function DentistDashboard() {
                                             </div>
                                         </div>
                                     )) : (
-                                        <div className="flex justify-center py-8 text-muted-foreground">
+                                        <div className="flex justify-center py-8 text-muted-foreground dark:text-muted-foreground">
                                             No upcoming appointments scheduled
                                         </div>
                                     )
@@ -437,18 +476,18 @@ export default function DentistDashboard() {
                             <div className="grid overflow-y-auto grid-cols-3 gap-2 pr-1 max-h-128">
                                 {/* Render dynamic time slots */}
                                 {todayTimeSlots.map((slot, index) => (
-                                    <div key={index} className="flex flex-col justify-between items-center p-3 h-28 bg-white rounded-md border shadow-sm">
+                                    <div key={index} className="flex flex-col justify-between items-center p-3 h-28 bg-card rounded-md border shadow-sm dark:border-border">
                                         <div className="flex justify-center items-center w-full">
                                             <div className={`flex justify-center items-center mr-2 w-6 h-6 rounded-full ${
-                                                slot.status === 'lunch' ? 'bg-muted/20' : 
-                                                slot.status === 'unavailable' ? 'bg-gray-100' : 
-                                                'bg-blue-50'}`}>
+                                                slot.status === 'lunch' ? 'bg-muted/20 dark:bg-muted/40' : 
+                                                slot.status === 'unavailable' ? 'bg-muted-foreground/10 dark:bg-muted-foreground/20' : 
+                                                'bg-primary/10 dark:bg-primary/20'}`}>
                                                 {slot.status === 'booked' ? (
-                                                    <UserRound className="w-3 h-3 text-blue-500" />
+                                                    <UserRound className="w-3 h-3 text-primary dark:text-primary" />
                                                 ) : slot.status === 'unavailable' ? (
-                                                    <Clock className="w-3 h-3 text-gray-400" />
+                                                    <Clock className="w-3 h-3 text-muted-foreground dark:text-muted-foreground" />
                                                 ) : (
-                                                    <Clock className="w-3 h-3 text-blue-500" />
+                                                    <Clock className="w-3 h-3 text-primary dark:text-primary" />
                                                 )}
                                             </div>
                                             <p className="text-sm font-medium">{slot.time}</p>
@@ -475,9 +514,9 @@ export default function DentistDashboard() {
                                                 variant={slot.status === 'available' ? "default" : 
                                                         slot.status === 'booked' ? "destructive" : 
                                                         slot.status === 'unavailable' ? "secondary" : "outline"}
-                                                className={`${slot.status === 'available' ? 'bg-blue-100 hover:bg-blue-100 text-blue-700 hover:text-blue-700' :
-                                                          slot.status === 'booked' ? 'bg-red-100 hover:bg-red-100 text-red-700 hover:text-red-700' : 
-                                                          slot.status === 'unavailable' ? 'bg-gray-100 hover:bg-gray-100 text-gray-500 hover:text-gray-500' : ''}`}
+                                                className={`${slot.status === 'available' ? 'bg-primary/10 hover:bg-primary/15 text-primary hover:text-primary dark:bg-primary/20 dark:hover:bg-primary/25 dark:text-primary-foreground dark:hover:text-primary-foreground' :
+                                                          slot.status === 'booked' ? 'bg-destructive/10 hover:bg-destructive/15 text-destructive hover:text-destructive dark:bg-destructive/20 dark:hover:bg-destructive/25 dark:text-destructive-foreground dark:hover:text-destructive-foreground' : 
+                                                          slot.status === 'unavailable' ? 'bg-muted hover:bg-muted text-muted-foreground hover:text-muted-foreground dark:bg-muted/50 dark:hover:bg-muted/60 dark:text-muted-foreground dark:hover:text-muted-foreground' : ''}`}
                                             >
                                                 {slot.status === 'available' ? "Available" :
                                                  slot.status === 'booked' ? "Booked" :
@@ -495,5 +534,6 @@ export default function DentistDashboard() {
                 </div>
             </div>
         </AppLayout>
+        </>
     );
 }

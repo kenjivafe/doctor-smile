@@ -110,13 +110,13 @@ export default function AdminDashboard() {
         dentistWorkload,
         auth
     } = usePage<AdminDashboardProps>().props;
-    
+
     // Get admin name from auth - ensure no Dr. prefix is added for admin users
     let adminName = auth?.user?.name || 'Admin';
-    
+
     // Explicitly strip any 'Dr.' prefix that might be added elsewhere
     adminName = adminName.replace(/^Dr\.\s*/i, '');
-    
+
     // Debug
     console.log('Admin name before display:', adminName);
 
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Dashboard" />
-            <div className="flex flex-col flex-1 gap-4 p-4 h-full">
+            <div className="flex flex-col flex-1 gap-4 p-8 h-full">
                 <div className="flex justify-between items-center">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Welcome back, {adminName.replace(/^Dr\.\s*/i, '')}</h2>

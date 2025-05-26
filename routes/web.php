@@ -27,9 +27,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             return Inertia::render('Admin/users');
         })->name('admin.users');
 
-        Route::get('dentists', function () {
-            return Inertia::render('Admin/dentists');
-        })->name('admin.dentists');
+        // Dentist management
+        Route::get('dentists', [AdminController::class, 'dentistManagement'])->name('admin.dentists');
+        Route::get('dentists/create', [\App\Http\Controllers\Admin\DentistController::class, 'create'])->name('admin.dentists.create');
+        Route::post('dentists', [\App\Http\Controllers\Admin\DentistController::class, 'store'])->name('admin.dentists.store');
+        Route::get('dentists/{id}', [\App\Http\Controllers\Admin\DentistController::class, 'show'])->name('admin.dentists.show');
+        Route::get('dentists/{id}/edit', [\App\Http\Controllers\Admin\DentistController::class, 'edit'])->name('admin.dentists.edit');
+        Route::put('dentists/{id}', [\App\Http\Controllers\Admin\DentistController::class, 'update'])->name('admin.dentists.update');
+        Route::delete('dentists/{id}', [\App\Http\Controllers\Admin\DentistController::class, 'destroy'])->name('admin.dentists.destroy');
 
         Route::get('patients', function () {
             return Inertia::render('Admin/patients');
