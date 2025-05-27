@@ -10,10 +10,206 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class AdminController extends Controller
 {
+    /**
+     * Display the patient management page with data
+     *
+     * @return \Inertia\Response
+     */
+    public function patientManagement()
+    {
+        // Clear any query cache that might be in place
+        DB::connection()->disableQueryLog();
+        
+        // Get all patients with their base information - WITH DEBUGGING
+        Log::info('Running patient management query');
+        $patients = User::where('role', 'patient')
+            ->join('patients', 'users.id', '=', 'patients.user_id')
+            ->addSelect(
+                'users.id', 
+                'users.name', 
+                'users.email',
+                'patients.phone_number as phone',
+                'patients.address',
+                'patients.gender',
+                'patients.date_of_birth',
+                'patients.balance'
+            )
+            ->get();
+            
+        // Log the number of patients found
+        Log::info('Found ' . $patients->count() . ' patients');
+        // Log IDs to verify user 23 is included
+        Log::info('Patient user IDs: ' . $patients->pluck('id')->implode(', '));
+            
+        // Process each patient to add appointment data
+        $patientsWithStats = $patients->map(function ($patient) {
+            // Special debugging for user ID 23
+            if ($patient->id == 23) {
+                Log::info("Processing user ID 23 (Kenji)");
+                
+                // Get raw appointment data for this user
+                $rawAppointments = DB::table('appointments')
+                    ->where('patient_id', $patient->id)
+                    ->get();
+                    
+                Log::info("Direct query found " . $rawAppointments->count() . " appointments for user ID 23");
+                
+                // Check if we need to look for patient ID instead
+                $patientRecord = DB::table('patients')->where('user_id', $patient->id)->first();
+                if ($patientRecord) {
+                    $patientAppointments = DB::table('appointments')
+                        ->where('patient_id', $patientRecord->id)
+                        ->get();
+                    Log::info("Found patient ID {$patientRecord->id} for user ID 23");
+                    Log::info("Patient ID query found " . $patientAppointments->count() . " appointments");
+                    
+                    // Show detailed appointment info
+                    foreach ($patientAppointments as $appt) {
+                        Log::info("Appointment #{$appt->id}: status={$appt->status}, is_paid=" . ($appt->is_paid ? 'true' : 'false'));
+                    }
+                }
+            }
+            
+            // Fix: Get the correct patient_id from the patients table first
+            $patientRecord = DB::table('patients')->where('user_id', $patient->id)->first();
+            $patientId = $patientRecord ? $patientRecord->id : $patient->id;
+            
+            // Get appointment counts directly from the appointments table for accuracy
+            $appointmentCounts = DB::table('appointments')
+                ->where('patient_id', $patientId) // Now using the correct patient ID
+                ->selectRaw('COUNT(*) as total_appointments')
+                ->selectRaw('SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed_appointments')
+                ->selectRaw('SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as cancelled_appointments')
+                ->first();
+                
+            // Calculate total spent on dental services using a subquery for better performance
+            // Only include appointments that have been paid
+            $totalSpent = DB::table('appointments')
+                ->where('patient_id', $patientId) // Using the correct patient ID
+                ->where('status', 'completed')
+                ->where('is_paid', true) // Only count paid appointments
+                ->whereNotNull('dental_service_id')
+                ->join('dental_services', 'appointments.dental_service_id', '=', 'dental_services.id')
+                ->sum('dental_services.price');
+            
+            // Calculate patient status based on balance and appointment history
+            $status = 'active'; // Default status
+            
+            // Check for overdue payments (time-based with negative balance)
+            if ($patient->balance < 0) {
+                // Get the oldest unpaid completed appointment
+                $oldestUnpaid = DB::table('appointments')
+                    ->where('patient_id', $patientId)
+                    ->where('status', 'completed')
+                    ->where('is_paid', false)
+                    ->orderBy('appointment_datetime', 'asc')
+                    ->first();
+                
+                // If there's an unpaid appointment older than 30 days, mark as overdue
+                if ($oldestUnpaid && Carbon::parse($oldestUnpaid->appointment_datetime)->addDays(30)->isPast()) {
+                    $status = 'overdue';
+                }
+            }
+            
+            // Check for inactive status (no appointments in 24 months)
+            $latestAppointment = DB::table('appointments')
+                ->where('patient_id', $patientId)
+                ->orderBy('appointment_datetime', 'desc')
+                ->first();
+                
+            if (!$latestAppointment) {
+                // No appointments ever - mark as new
+                $status = 'new';
+            } elseif ($latestAppointment && Carbon::parse($latestAppointment->appointment_datetime)->addMonths(24)->isPast()) {
+                // Last appointment was more than 24 months ago - mark as inactive
+                $status = 'inactive';
+            }
+            
+            // Check if the patient has any future appointments
+            $hasAppointments = DB::table('appointments')
+                ->where('patient_id', $patientId) // Using the correct patient ID
+                ->where('appointment_datetime', '>=', now())
+                ->exists();
+            
+            // Format the date_of_birth field for easier display
+            $dateOfBirth = $patient->date_of_birth ? date('Y-m-d', strtotime($patient->date_of_birth)) : null;
+            
+            // Calculate age from date of birth if available
+            $age = null;
+            if ($dateOfBirth) {
+                $age = date_diff(date_create($dateOfBirth), date_create('today'))->y;
+            }
+            
+            // Prepare data for frontend
+            return [
+                'id' => $patient->id,
+                'name' => $patient->name,
+                'email' => $patient->email,
+                'phone' => $patient->phone,
+                'address' => $patient->address,
+                'gender' => $patient->gender,
+                'date_of_birth' => $dateOfBirth,
+                'age' => $age,
+                // Display balance as absolute value - always 'outstanding' but with flag for styling
+                'balance' => (float) abs($patient->balance),
+                'balance_type' => 'outstanding',
+                'is_zero_balance' => $patient->balance == 0,
+                'totalAppointments' => (int) ($appointmentCounts->total_appointments ?? 0),
+                'completedAppointments' => (int) ($appointmentCounts->completed_appointments ?? 0),
+                'cancelledAppointments' => (int) ($appointmentCounts->cancelled_appointments ?? 0),
+                'totalSpent' => (float) $totalSpent,
+                'status' => $status,
+                'hasAppointments' => $hasAppointments,
+            ];
+        });
+        
+        // Patient statistics for charts - only include patients with some activity
+        $patientStats = $patientsWithStats
+            ->filter(function ($patient) {
+                return $patient['totalAppointments'] > 0 || $patient['totalSpent'] > 0;
+            })
+            ->map(function ($patient) {
+                return [
+                    'name' => $patient['name'],
+                    'totalSpent' => $patient['totalSpent'],
+                    'completedAppointments' => $patient['completedAppointments'],
+                    'cancelledAppointments' => $patient['cancelledAppointments'],
+                ];
+            })
+            ->values()
+            ->all(); // Convert to plain PHP array for proper JSON serialization
+        
+        // Recent appointments across all patients
+        $recentAppointments = Appointment::with(['patient.user', 'dentist', 'dentalService'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($appointment) {
+                return [
+                    'id' => $appointment->id,
+                    'patient_name' => $appointment->patient->user->name ?? 'Unknown',
+                    'dentist_name' => $appointment->dentist->name ?? 'Unknown',
+                    'service_name' => $appointment->dentalService->name ?? 'Unknown',
+                    'appointment_datetime' => $appointment->appointment_datetime,
+                    'status' => $appointment->status,
+                    'duration_minutes' => $appointment->duration_minutes,
+                    'cost' => $appointment->dentalService->price ?? 0,
+                ];
+            });
+        
+        // Return data to the view
+        return Inertia::render('Admin/patients', [
+            'patients' => $patientsWithStats,
+            'patientStats' => $patientStats,
+            'recentAppointments' => $recentAppointments,
+        ]);
+    }
+    
     /**
      * Display the dentist management page with performance data
      *

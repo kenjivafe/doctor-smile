@@ -25,14 +25,14 @@ class PatientSeeder extends Seeder
                     'role' => 'patient',
                 ],
                 'patient' => [
-                    'phone_number' => '555-123-4567',
+                    'phone_number' => '09175123456',
                     'date_of_birth' => '1985-06-15',
                     'gender' => 'male',
                     'address' => '123 Main St, Anytown, PH',
                     'medical_history' => 'No significant medical history',
                     'allergies' => 'Penicillin',
                     'emergency_contact_name' => 'Jane Doe',
-                    'emergency_contact_phone' => '555-987-6543',
+                    'emergency_contact_phone' => '09173216543',
                 ],
             ],
             [
@@ -43,14 +43,14 @@ class PatientSeeder extends Seeder
                     'role' => 'patient',
                 ],
                 'patient' => [
-                    'phone_number' => '555-234-5678',
+                    'phone_number' => '09182345678',
                     'date_of_birth' => '1990-12-10',
                     'gender' => 'female',
                     'address' => '456 Oak Ave, Somewhere, PH',
                     'medical_history' => 'Asthma, Controlled with inhaler',
                     'allergies' => 'None',
                     'emergency_contact_name' => 'Carlos Garcia',
-                    'emergency_contact_phone' => '555-876-5432',
+                    'emergency_contact_phone' => '+639178765432',
                 ],
             ],
         ];

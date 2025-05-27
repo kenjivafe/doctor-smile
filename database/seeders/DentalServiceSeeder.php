@@ -18,7 +18,7 @@ class DentalServiceSeeder extends Seeder
             [
                 'name' => 'Dental Checkup',
                 'description' => 'A thorough examination of your teeth, gums, and mouth to detect any potential issues.',
-                'price' => 80.00,
+                'price' => 100.00,
                 'duration_minutes' => 30,
                 'category' => 'preventive',
                 'is_active' => true,
@@ -26,7 +26,7 @@ class DentalServiceSeeder extends Seeder
             [
                 'name' => 'Teeth Cleaning',
                 'description' => 'Professional cleaning to remove plaque and tartar buildup that cannot be removed by regular brushing and flossing.',
-                'price' => 120.00,
+                'price' => 100.00,
                 'duration_minutes' => 45,
                 'category' => 'preventive',
                 'is_active' => true,
@@ -42,7 +42,7 @@ class DentalServiceSeeder extends Seeder
             [
                 'name' => 'Dental Filling',
                 'description' => 'Procedure to restore damaged or decayed teeth using filling materials to repair the tooth\'s structure.',
-                'price' => 150.00,
+                'price' => 200.00,
                 'duration_minutes' => 45,
                 'category' => 'general',
                 'is_active' => true,
@@ -58,7 +58,7 @@ class DentalServiceSeeder extends Seeder
             [
                 'name' => 'Dental Crown',
                 'description' => 'A cap placed over a damaged tooth to restore its shape, size, strength, and appearance.',
-                'price' => 950.00,
+                'price' => 1000.00,
                 'duration_minutes' => 60,
                 'category' => 'general',
                 'is_active' => true,

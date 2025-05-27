@@ -28,7 +28,7 @@ class DentalServiceFactory extends Factory
                 'Dental Sealant', 'Fluoride Treatment', 'Dental X-Ray'
             ]),
             'description' => fake()->paragraph(),
-            'price' => fake()->randomFloat(2, 50, 2000),
+            'price' => fake()->randomElement([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000]),
             'duration_minutes' => fake()->randomElement([30, 45, 60, 90, 120, 180]),
             'category' => fake()->randomElement($categories),
             'is_active' => fake()->boolean(80), // 80% chance of being active

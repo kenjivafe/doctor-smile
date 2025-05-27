@@ -39,7 +39,8 @@ class AppointmentFactory extends Factory
             'status' => fake()->randomElement($statuses),
             'notes' => fake()->optional(0.7)->sentence(),
             'treatment_notes' => fake()->optional(0.5)->paragraph(),
-            'cost' => fake()->randomFloat(2, 50, 2000),
+            'cost' => null, // We'll set this based on the dental service in the seeder
+            'is_paid' => fake()->boolean(70), // 70% chance of being paid
             'cancellation_reason' => function (array $attributes) {
                 return $attributes['status'] === 'cancelled' ? fake()->sentence() : null;
             },

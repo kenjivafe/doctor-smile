@@ -27,6 +27,12 @@ class AppointmentSeeder extends Seeder
             return;
         }
         
+        // Reset all patient balances to zero before we start
+        foreach ($patients as $patient) {
+            $patient->balance = 0;
+            $patient->save();
+        }
+        
         // Create appointments for each status
         $this->createPastAppointments($patients, $dentists, $services);
         $this->createTodayAppointments($patients, $dentists, $services);
@@ -40,37 +46,56 @@ class AppointmentSeeder extends Seeder
     {
         // Create 10 completed appointments in the past month
         foreach (range(1, 10) as $index) {
-            Appointment::factory()
+            $patient = $patients->random();
+            $service = $services->random();
+            
+            $appointment = Appointment::factory()
                 ->completed()
                 ->create([
-                    'patient_id' => $patients->random()->id,
+                    'patient_id' => $patient->id,
                     'dentist_id' => $dentists->random()->id,
-                    'dental_service_id' => $services->random()->id,
+                    'dental_service_id' => $service->id,
                     'appointment_datetime' => Carbon::now()->subDays(rand(1, 30))->setTime(rand(9, 16), [0, 15, 30, 45][rand(0, 3)]),
+                    'cost' => $service->price, // Set cost from dental service
                 ]);
+                
+            // If not paid, adjust patient balance (add as debt)
+            if (!$appointment->is_paid) {
+                $patient->balance -= $service->price; // Negative balance means debt
+                $patient->save();
+            }
         }
         
         // Create 5 cancelled appointments in the past month
         foreach (range(1, 5) as $index) {
+            $service = $services->random();
+            
+            // For cancelled appointments we don't need to update balance
             Appointment::factory()
                 ->cancelled()
                 ->create([
                     'patient_id' => $patients->random()->id,
                     'dentist_id' => $dentists->random()->id,
-                    'dental_service_id' => $services->random()->id,
+                    'dental_service_id' => $service->id,
                     'appointment_datetime' => Carbon::now()->subDays(rand(1, 30))->setTime(rand(9, 16), [0, 15, 30, 45][rand(0, 3)]),
+                    'cost' => $service->price, // Set cost from dental service
+                    'is_paid' => false, // Cancelled appointments are never paid
                 ]);
         }
         
         // Create 3 additional cancelled appointments in the past month (former no_shows)
         foreach (range(1, 3) as $index) {
+            $service = $services->random();
+            
             Appointment::factory()
                 ->cancelled()
                 ->create([
                     'patient_id' => $patients->random()->id,
                     'dentist_id' => $dentists->random()->id,
-                    'dental_service_id' => $services->random()->id,
+                    'dental_service_id' => $service->id,
                     'appointment_datetime' => Carbon::now()->subDays(rand(1, 30))->setTime(rand(9, 16), [0, 15, 30, 45][rand(0, 3)]),
+                    'cost' => $service->price, // Set cost from dental service
+                    'is_paid' => false, // No-shows are never paid
                     'cancellation_reason' => 'Patient did not show up',
                 ]);
         }
@@ -104,28 +129,40 @@ class AppointmentSeeder extends Seeder
             // Morning appointment
             $morningHour = 9;
             $morningMinute = [0, 15, 30, 45][rand(0, 3)];
+            $patient = $patients->random();
+            $service = $services->random();
             
-            Appointment::factory()
+            $appointment = Appointment::factory()
                 ->confirmed()
                 ->create([
-                    'patient_id' => $patients->random()->id,
+                    'patient_id' => $patient->id,
                     'dentist_id' => $dentist->id,
-                    'dental_service_id' => $services->random()->id,
+                    'dental_service_id' => $service->id,
                     'appointment_datetime' => Carbon::today()->setTime($morningHour, $morningMinute),
+                    'cost' => $service->price, // Set cost from dental service
                 ]);
+                
+            // Confirmed appointments have no balance adjustment yet
+            // They'll affect balance when completed or canceled
             
             // Afternoon appointment
             $afternoonHour = 14;
             $afternoonMinute = [0, 15, 30, 45][rand(0, 3)];
+            $patient = $patients->random();
+            $service = $services->random();
             
-            Appointment::factory()
+            $appointment = Appointment::factory()
                 ->confirmed()
                 ->create([
-                    'patient_id' => $patients->random()->id,
+                    'patient_id' => $patient->id,
                     'dentist_id' => $dentist->id,
-                    'dental_service_id' => $services->random()->id,
+                    'dental_service_id' => $service->id,
                     'appointment_datetime' => Carbon::today()->setTime($afternoonHour, $afternoonMinute),
+                    'cost' => $service->price, // Set cost from dental service
                 ]);
+                
+            // Confirmed appointments have no balance adjustment yet
+            // They'll affect balance when completed or canceled
         }
     }
     
@@ -136,25 +173,34 @@ class AppointmentSeeder extends Seeder
     {
         // Create 8 pending appointments in the next two weeks
         foreach (range(1, 8) as $index) {
+            $patient = $patients->random();
+            $service = $services->random();
+            
             Appointment::factory()
                 ->pending()
                 ->create([
-                    'patient_id' => $patients->random()->id,
+                    'patient_id' => $patient->id,
                     'dentist_id' => $dentists->random()->id,
-                    'dental_service_id' => $services->random()->id,
+                    'dental_service_id' => $service->id,
                     'appointment_datetime' => Carbon::now()->addDays(rand(1, 14))->setTime(rand(9, 16), [0, 15, 30, 45][rand(0, 3)]),
+                    'cost' => $service->price, // Set cost from dental service
+                    'is_paid' => false, // Pending appointments are not paid yet
                 ]);
         }
         
         // Create 6 confirmed appointments in the next month
         foreach (range(1, 6) as $index) {
-            Appointment::factory()
+            $patient = $patients->random();
+            $service = $services->random();
+            
+            $appointment = Appointment::factory()
                 ->confirmed()
                 ->create([
-                    'patient_id' => $patients->random()->id,
+                    'patient_id' => $patient->id,
                     'dentist_id' => $dentists->random()->id,
-                    'dental_service_id' => $services->random()->id,
+                    'dental_service_id' => $service->id,
                     'appointment_datetime' => Carbon::now()->addDays(rand(3, 30))->setTime(rand(9, 16), [0, 15, 30, 45][rand(0, 3)]),
+                    'cost' => $service->price, // Set cost from dental service
                 ]);
         }
     }

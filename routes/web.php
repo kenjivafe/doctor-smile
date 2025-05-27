@@ -36,9 +36,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('dentists/{id}', [\App\Http\Controllers\Admin\DentistController::class, 'update'])->name('admin.dentists.update');
         Route::delete('dentists/{id}', [\App\Http\Controllers\Admin\DentistController::class, 'destroy'])->name('admin.dentists.destroy');
 
-        Route::get('patients', function () {
-            return Inertia::render('Admin/patients');
-        })->name('admin.patients');
+        // Patient management
+        Route::get('patients', [AdminController::class, 'patientManagement'])->name('admin.patients');
+        Route::get('patients/create', [\App\Http\Controllers\Admin\PatientController::class, 'create'])->name('admin.patients.create');
+        Route::post('patients', [\App\Http\Controllers\Admin\PatientController::class, 'store'])->name('admin.patients.store');
+        Route::get('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'show'])->name('admin.patients.show');
+        Route::get('patients/{id}/edit', [\App\Http\Controllers\Admin\PatientController::class, 'edit'])->name('admin.patients.edit');
+        Route::put('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'update'])->name('admin.patients.update');
+        Route::delete('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('admin.patients.destroy');
 
         Route::get('appointments', function () {
             return Inertia::render('Admin/appointments');

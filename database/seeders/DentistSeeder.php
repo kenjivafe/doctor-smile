@@ -21,25 +21,25 @@ class DentistSeeder extends Seeder
             'raymond@doctor-smile.com' => [
                 'bio' => 'Experienced dentist specializing in cosmetic dentistry and restorative procedures.',
                 'years_of_experience' => 12,
-                'contact_number' => '555-123-4567',
+                'contact_number' => '09171234567',
                 'address' => '123 Dental Plaza, Suite 101, Cityville',
             ],
             'sarah@doctor-smile.com' => [
                 'bio' => 'Specializes in pediatric dentistry and dental hygiene. Gentle approach for nervous patients.',
                 'years_of_experience' => 8,
-                'contact_number' => '555-987-6543',
+                'contact_number' => '09209876543',
                 'address' => '456 Smile Avenue, Suite 202, Townsburg',
             ],
             'michael@doctor-smile.com' => [
                 'bio' => 'Expert in dental implants and reconstructive dentistry. Board certified in oral surgery.',
                 'years_of_experience' => 15,
-                'contact_number' => '555-456-7890',
+                'contact_number' => '+639184567890',
                 'address' => '789 Orthodontic Lane, Suite 303, Dentalville',
             ],
             'emily@doctor-smile.com' => [
                 'bio' => 'Focuses on preventive care and gum disease treatment. Certified in advanced periodontics.',
                 'years_of_experience' => 7,
-                'contact_number' => '555-321-0987',
+                'contact_number' => '09273210987',
                 'address' => '321 Floss Street, Suite 404, Brushtown',
             ],
         ];
@@ -55,7 +55,7 @@ class DentistSeeder extends Seeder
             $details = $dentistDetails[$user->email] ?? [
                 'bio' => 'Professional dentist with experience in general dentistry.',
                 'years_of_experience' => 5,
-                'contact_number' => '555-000-0000',
+                'contact_number' => '09170000000',
                 'address' => 'Doctor Smile Dental Clinic',
             ];
 

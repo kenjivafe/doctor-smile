@@ -242,21 +242,21 @@ export default function Dentists() {
     const totalCompletedAppointments = dentists.reduce(
         (total, dentist) => total + (dentist.completedAppointments || 0), 0
     );
-    
+
     const totalRevenue = dentists.reduce(
         (total, dentist) => total + (dentist.revenue || 0), 0
     );
-    
+
     // Calculate average completion rate properly
-    const avgCompletionRate = dentists.length > 0 
+    const avgCompletionRate = dentists.length > 0
         ? Math.round(dentists.reduce((total, dentist) => {
             if (dentist.totalAppointments > 0) {
                 return total + ((dentist.completedAppointments / dentist.totalAppointments) * 100);
             }
             return total;
-        }, 0) / dentists.filter(d => d.totalAppointments > 0).length || 0) 
+        }, 0) / dentists.filter(d => d.totalAppointments > 0).length || 0)
         : 0;
-    
+
     // Filter dentists based on search query
     const filteredDentists = dentists.filter(dentist =>
         dentist.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -362,7 +362,7 @@ export default function Dentists() {
                             </button>
                         </div>
                     </div>
-                    
+
                     {/* Dentist List Tab */}
                     {activeTab === 'list' && (
                         <div className="pt-4">
@@ -392,8 +392,8 @@ export default function Dentists() {
                                     {/* Debug data in a way that doesn't cause TypeScript errors */}
                                     <div className="hidden">{JSON.stringify(filteredDentists)}</div>
                                     {Array.isArray(filteredDentists) && filteredDentists.length > 0 ? (
-                                        <DataTable 
-                                            columns={columns} 
+                                        <DataTable
+                                            columns={columns}
                                             data={filteredDentists.map(dentist => ({
                                                 id: dentist.id,
                                                 name: dentist.name || 'Unknown',

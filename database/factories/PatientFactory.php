@@ -30,15 +30,15 @@ class PatientFactory extends Factory
             
         return [
             'user_id' => User::factory()->patient(),
-            'phone_number' => fake()->phoneNumber(),
+            'phone_number' => '09' . fake()->numberBetween(10, 99) . fake()->numberBetween(1000000, 9999999),
             'date_of_birth' => fake()->dateTimeBetween('-80 years', '-18 years')->format('Y-m-d'),
             'gender' => fake()->randomElement(['male', 'female', 'other']),
             'address' => fake()->address(),
             'medical_history' => fake()->optional(0.7)->paragraph(),
             'allergies' => fake()->optional(0.4)->sentence(),
             'emergency_contact_name' => fake()->name(),
-            'emergency_contact_phone' => fake()->phoneNumber(),
-            'balance' => fake()->randomFloat(2, 0, 1000),
+            'emergency_contact_phone' => fake()->randomElement(['09', '+639']) . fake()->numberBetween(10, 99) . fake()->numberBetween(1000000, 9999999),
+            'balance' => fake()->randomElement([0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]),
             'suggested_next_appointment' => $suggestedNextAppointment,
             'next_appointment_reason' => $nextAppointmentReason,
         ];

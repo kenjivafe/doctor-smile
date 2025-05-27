@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
             PatientSeeder::class,         // Run third: creates patients (depends on users)
             DentistWorkingHourSeeder::class, // Run fourth: creates default working hours for dentists
             DentalServiceSeeder::class,   // Run fifth: creates dental services
-            AppointmentSeeder::class,     // Run last: creates appointments (depends on patients, dentists, and services)
+            AppointmentSeeder::class,     // Run sixth: creates appointments (depends on patients, dentists, and services)
         ]);
     }
 }
