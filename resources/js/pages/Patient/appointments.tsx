@@ -1,15 +1,16 @@
-import * as React from 'react';
-import { PageTemplate } from '@/components/page-template';
+import { useState } from 'react';
+import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage, router } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { CalendarClock, Clock, Info, CheckCircle, XCircle, MoreHorizontal } from 'lucide-react';
+import { CalendarClock, Clock, CheckCircle, XCircle, Plus, MoreHorizontal, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Link } from '@/components/ui/link';
-import { Card } from '@/components/ui/card';
+import { DataTable } from '@/components/data-table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/alert-dialog';
 import {
   Dialog,
@@ -26,15 +27,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+
+import type { ColumnDef } from '@tanstack/react-table';
 
 type AppointmentStatus = 'pending' | 'suggested' | 'confirmed' | 'completed' | 'cancelled' | 'rescheduled';
 
@@ -47,9 +41,15 @@ interface Appointment {
   duration_minutes: number;
 }
 
-// Types defined directly in usePage generic type
+interface AppointmentsProps {
+  appointments: Appointment[];
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/patient/dashboard',
+  },
   {
     title: 'Appointments',
     href: '/patient/appointments',
@@ -81,23 +81,22 @@ const formatStatus = (status: string) => {
 };
 
 export default function Appointments() {
-  const { appointments } = usePage<{ appointments: Appointment[] }>().props;
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [appointmentToCancel, setAppointmentToCancel] = React.useState<number | null>(null);
-  const [appointmentToAccept, setAppointmentToAccept] = React.useState<number | null>(null);
-  const [appointmentToDecline, setAppointmentToDecline] = React.useState<number | null>(null);
-  
+  const { appointments = [] } = usePage().props as unknown as AppointmentsProps;
+  const [loading, setLoading] = useState<boolean>(false);
+  const [appointmentToAccept, setAppointmentToAccept] = useState<number | null>(null);
+  const [appointmentToDecline, setAppointmentToDecline] = useState<number | null>(null);
+
   // For the cancellation dialog
-  const [cancelDialogOpen, setCancelDialogOpen] = React.useState(false);
-  const [selectedAppointment, setSelectedAppointment] = React.useState<Appointment | null>(null);
-  const [cancellationReason, setCancellationReason] = React.useState('');
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [cancellationReason, setCancellationReason] = useState('');
 
   // Function to open the cancel dialog
   const openCancelDialog = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setCancelDialogOpen(true);
   };
-  
+
   // Function to close the cancel dialog
   const closeCancelDialog = () => {
     setCancelDialogOpen(false);
@@ -116,25 +115,6 @@ export default function Appointments() {
       onSuccess: () => {
         setLoading(false);
         closeCancelDialog();
-        // Refresh the page to update the appointments list
-        window.location.reload();
-      },
-      onError: (error) => {
-        console.error('Error cancelling appointment:', error);
-        setLoading(false);
-      },
-    });
-  };
-  
-  // Legacy handle function for the simple confirm dialog
-  const handleSimpleCancelAppointment = () => {
-    if (!appointmentToCancel) return;
-    setLoading(true);
-
-    router.post(`/patient/appointments/${appointmentToCancel}/cancel`, {}, {
-      onSuccess: () => {
-        setAppointmentToCancel(null);
-        setLoading(false);
         // Refresh the page to update the appointments list
         window.location.reload();
       },
@@ -183,36 +163,168 @@ export default function Appointments() {
     });
   };
 
+  // Define columns for the appointments table
+  const columns: ColumnDef<Appointment>[] = [
+    {
+      accessorKey: 'service_name',
+      header: 'Service',
+      cell: ({ row }) => <div className="font-medium">{row.original.service_name}</div>,
+    },
+    {
+      accessorKey: 'dentist_name',
+      header: 'Dentist',
+      cell: ({ row }) => <div>{row.original.dentist_name}</div>,
+    },
+    {
+      accessorKey: 'appointment_datetime',
+      header: 'Date & Time',
+      cell: ({ row }) => {
+        const appointment = row.original;
+        return (
+          <div className="flex flex-col">
+            <span className="flex gap-1 items-center">
+              <CalendarClock className="w-3 h-3" />
+              {format(new Date(appointment.appointment_datetime), 'MMM d, yyyy')}
+            </span>
+            <span className="flex gap-1 items-center text-muted-foreground">
+              <Clock className="w-3 h-3" />
+              {format(new Date(appointment.appointment_datetime), 'h:mm a')}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'duration_minutes',
+      header: 'Duration',
+      cell: ({ row }) => <div>{row.original.duration_minutes} min</div>,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => (
+        <Badge variant={getStatusBadgeVariant(row.original.status)}>
+          {formatStatus(row.original.status)}
+        </Badge>
+      ),
+    },
+    {
+      id: 'actions',
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => {
+        const appointment = row.original;
+        return (
+          <div className="flex gap-2 justify-end">
+            <Link
+              href={`/patient/appointments/${appointment.id}`}
+              className="flex justify-center items-center p-0 w-8 h-8 bg-transparent rounded-md border-0 shadow-none text-foreground hover:text-background hover:bg-accent"
+            >
+              <Eye className="w-4 h-4" />
+              <span className="sr-only">View</span>
+            </Link>
+
+            {/* Different actions based on appointment status */}
+            {appointment.status === 'pending' && (
+              <button
+                type="button"
+                onClick={() => openCancelDialog(appointment)}
+                className="flex justify-center items-center p-0 w-8 h-8 rounded-md text-foreground hover:bg-destructive/10"
+              >
+                <XCircle className="w-4 h-4" />
+                <span className="sr-only">Cancel</span>
+              </button>
+            )}
+
+            {/* Actions for suggested appointments */}
+            {appointment.status === 'suggested' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <button className="flex justify-center items-center p-0 w-8 h-8 rounded-md hover:bg-accent hover:text-background">
+                    <MoreHorizontal className="w-4 h-4" />
+                    <span className="sr-only">Actions</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="p-2 rounded-md border shadow-md bg-popover text-popover-foreground border-border">
+                  <div className="mb-1">
+                    <button
+                      type="button"
+                      onClick={() => setAppointmentToAccept(appointment.id)}
+                      className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-primary text-primary hover:text-primary-foreground dark:hover:bg-blue-600 dark:hover:text-white"
+                    >
+                      <div className="flex-grow text-sm font-medium text-left">Accept</div>
+                      <div className="flex items-center">
+                        <CheckCircle className="w-4 h-4" />
+                      </div>
+                    </button>
+                  </div>
+                  <div className="mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setAppointmentToDecline(appointment.id)}
+                      className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
+                    >
+                      <div className="flex-grow text-sm font-medium text-left">Decline</div>
+                      <div className="flex items-center">
+                        <XCircle className="w-4 h-4" />
+                      </div>
+                    </button>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Actions for confirmed appointments */}
+            {appointment.status === 'confirmed' && (
+              <button
+                type="button"
+                onClick={() => openCancelDialog(appointment)}
+                className="flex justify-center items-center p-0 w-8 h-8 rounded-md text-foreground hover:bg-destructive hover:text-background"
+              >
+                <XCircle className="w-4 h-4" />
+                <span className="sr-only">Cancel</span>
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <>
-      <Head title="Appointments" />
-
       {/* Confirmation dialogs */}
-      {/* Legacy confirm dialog - keeping it for now */}
       <ConfirmDialog
-        open={!!appointmentToCancel}
+        open={!!appointmentToAccept}
         onOpenChange={(open) => {
           if (open === false) {
-            // Force a full page reload when dialog is closed without confirmation
-            window.location.reload();
+            setAppointmentToAccept(null);
           }
         }}
-        title="Cancel Appointment"
-        description="Are you sure you want to cancel this appointment? This action cannot be undone."
-        onConfirm={handleSimpleCancelAppointment}
+        title="Confirm Appointment"
+        description="Are you sure you want to accept this suggested appointment time?"
+        onConfirm={handleAcceptSuggestion}
+        isProcessing={loading}
+      />
+
+      <ConfirmDialog
+        open={!!appointmentToDecline}
+        onOpenChange={(open) => {
+          if (open === false) {
+            setAppointmentToDecline(null);
+          }
+        }}
+        title="Decline Appointment"
+        description="Are you sure you want to decline this suggested appointment time? This will cancel the appointment."
+        onConfirm={handleDeclineSuggestion}
         isProcessing={loading}
         confirmVariant="destructive"
       />
-      
-      {/* New cancellation dialog with reason field */}
-      <Dialog 
-        open={cancelDialogOpen} 
+
+      <Dialog
+        open={cancelDialogOpen}
         onOpenChange={(open) => {
-          if (open) {
-            setCancelDialogOpen(open);
-          } else {
-            // Force a full page reload when dialog is closed without confirmation
-            window.location.reload();
+          if (!open) {
+            closeCancelDialog();
           }
         }}
       >
@@ -230,7 +342,7 @@ export default function Appointments() {
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <Label htmlFor="cancellation-reason" className="text-sm font-medium">
               Cancellation Reason <span className="text-muted-foreground">(will be shared with the dentist)</span>
@@ -243,13 +355,13 @@ export default function Appointments() {
               className="mt-1.5"
             />
           </div>
-          
+
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" disabled={loading}>Cancel</Button>
             </DialogClose>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleCancelAppointment}
               disabled={loading}
             >
@@ -259,190 +371,55 @@ export default function Appointments() {
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog
-        open={!!appointmentToAccept}
-        onOpenChange={(open) => {
-          if (open === false) {
-            // Force a full page reload when dialog is closed without confirmation
-            window.location.reload();
-          }
-        }}
-        title="Confirm Appointment"
-        description="Are you sure you want to accept this suggested appointment time?"
-        onConfirm={handleAcceptSuggestion}
-        isProcessing={loading}
-      />
+      <AppLayout breadcrumbs={breadcrumbs}>
+        <Head title="My Appointments" />
 
-      <ConfirmDialog
-        open={!!appointmentToDecline}
-        onOpenChange={(open) => {
-          if (open === false) {
-            // Force a full page reload when dialog is closed without confirmation
-            window.location.reload();
-          }
-        }}
-        title="Decline Appointment"
-        description="Are you sure you want to decline this suggested appointment time? This will cancel the appointment."
-        onConfirm={handleDeclineSuggestion}
-        isProcessing={loading}
-        confirmVariant="destructive"
-      />
-
-      <PageTemplate
-        title="My Appointments"
-        breadcrumbs={breadcrumbs}
-      >
-        <p className="text-sm text-muted-foreground mb-4">View and manage your upcoming dental appointments.</p>
-        <Card className="p-6">
-          {appointments.length === 0 ? (
-            <div className="py-8 text-center">
-              <p className="mb-4 text-muted-foreground">You don't have any appointments yet.</p>
-              <Link href="/patient/book-appointment" variant="default">
-                Book an Appointment
-              </Link>
+        <div className="flex flex-col gap-4 p-6 m-4 h-full rounded-xl">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">My Appointments</h1>
+              <p className="text-muted-foreground">
+                View and manage your scheduled dental appointments.
+              </p>
             </div>
-          ) : (
-            <Table>
-              <TableCaption>Your scheduled appointments</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Dentist</TableHead>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {appointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell className="font-medium">{appointment.service_name}</TableCell>
-                    <TableCell>{appointment.dentist_name}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="flex gap-1 items-center">
-                          <CalendarClock className="w-3 h-3" />
-                          {format(new Date(appointment.appointment_datetime), 'MMM d, yyyy')}
-                        </span>
-                        <span className="flex gap-1 items-center text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {/* Format the time to be more user-friendly */}
-                          {(() => {
-                            const timePart = appointment.appointment_datetime.split('T')[1].substring(0, 5);
-                            const [hours, minutes] = timePart.split(':').map(Number);
-                            const period = hours >= 12 ? 'PM' : 'AM';
-                            const displayHours = hours % 12 || 12;
-                            return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-                          })()}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{appointment.duration_minutes} min</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(appointment.status)}>
-                        {formatStatus(appointment.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Link
-                          variant="outline"
-                          href={`/patient/appointments/${appointment.id}`}
-                          className="inline-flex justify-center items-center p-0 w-9 h-9 text-sm font-medium rounded-md border transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-input bg-background hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent dark:hover:text-accent-foreground dark:bg-popover"
-                        >
-                          <Info className="w-4 h-4" />
-                          <span className="sr-only">Details</span>
-                        </Link>
-                        {(['pending', 'suggested', 'confirmed'] as AppointmentStatus[]).includes(appointment.status) && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="inline-flex justify-center items-center p-0 w-9 h-9 text-sm font-medium rounded-md border transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-input bg-popover hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent dark:hover:text-accent-foreground">
-                                <MoreHorizontal className="w-4 h-4" />
-                                <span className="sr-only">Actions</span>
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="p-2 rounded-md border shadow-md bg-popover text-popover-foreground border-border">
-                              {/* Actions for confirmed appointments */}
-                              {appointment.status === 'confirmed' && (
-                                <div className="">
-                                  <button
-                                    type="button"
-                                    onClick={() => openCancelDialog(appointment)}
-                                    className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
-                                  >
-                                    <div className="flex-grow text-sm font-medium text-left">Cancel</div>
-                                    <div className="flex items-center">
-                                      <XCircle className="w-4 h-4" />
-                                    </div>
-                                  </button>
-                                </div>
-                              )}
+            <Button asChild>
+              <Link href="/patient/book-appointment">
+                <Plus className="mr-2 w-4 h-4" />
+                Book Appointment
+              </Link>
+            </Button>
+          </div>
 
-                              {/* Actions for pending appointments */}
-                              {appointment.status === 'pending' && (
-                                <div className="">
-                                  <button
-                                    type="button"
-                                    onClick={() => openCancelDialog(appointment)}
-                                    className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
-                                  >
-                                    <div className="flex-grow text-sm font-medium text-left">Cancel</div>
-                                    <div className="flex items-center">
-                                      <XCircle className="w-4 h-4" />
-                                    </div>
-                                  </button>
-                                </div>
-                              )}
-
-                              {/* Actions for suggested appointments */}
-                              {appointment.status === 'suggested' && (
-                                <>
-                                  <div className="mb-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => setAppointmentToAccept(appointment.id)}
-                                      className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-primary text-primary hover:text-primary-foreground dark:hover:bg-blue-600 dark:hover:text-white"
-                                    >
-                                      <div className="flex-grow text-sm font-medium text-left">Accept</div>
-                                      <div className="flex items-center">
-                                        <CheckCircle className="w-4 h-4" />
-                                      </div>
-                                    </button>
-                                  </div>
-                                  <div className="mt-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => setAppointmentToDecline(appointment.id)}
-                                      className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover hover:bg-destructive text-destructive hover:text-destructive-foreground dark:hover:bg-red-600 dark:hover:text-white"
-                                    >
-                                      <div className="flex-grow text-sm font-medium text-left">Decline</div>
-                                      <div className="flex items-center">
-                                        <XCircle className="w-4 h-4" />
-                                      </div>
-                                    </button>
-                                  </div>
-                                </>
-                              )}
-
-                              {/* Actions for completed/cancelled appointments - no actions available */}
-                              {['completed', 'cancelled'].includes(appointment.status) && (
-                                <div className="py-2 text-sm text-center text-muted-foreground">
-                                  No actions available
-                                </div>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </Card>
-      </PageTemplate>
+          <Card>
+            <CardHeader>
+              <CardTitle>Appointments</CardTitle>
+              <CardDescription>
+                Your upcoming and past dental appointments.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {appointments.length === 0 ? (
+                <div className="flex flex-col justify-center items-center p-10 space-y-4 text-center">
+                  <div className="flex justify-center items-center w-16 h-16 rounded-full bg-primary/10">
+                    <CalendarClock className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold">No Appointments Found</h3>
+                  <p className="max-w-md text-muted-foreground">
+                    You don't have any appointments scheduled yet.
+                  </p>
+                  <Button asChild>
+                    <Link href="/patient/book-appointment">
+                      Book an Appointment
+                    </Link>
+                  </Button>
+                </div>
+              ) : (
+                <DataTable columns={columns} data={appointments} />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
     </>
   );
 }
