@@ -8,12 +8,12 @@ import {
     BookOpen, 
     Calendar, 
     Clock, 
-
     File, 
     LayoutGrid, 
     Stethoscope, 
     Users, 
-    LineChart
+    LineChart,
+    MoveHorizontal
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -30,9 +30,9 @@ const commonNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
     ...commonNavItems,
     {
-        title: 'Users',
-        href: '/admin/users',
-        icon: Users,
+        title: 'Dental Services',
+        href: '/admin/dental-services',
+        icon: MoveHorizontal,
     },
     {
         title: 'Dentists',

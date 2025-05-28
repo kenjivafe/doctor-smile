@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, ArrowUpDown, Phone, Mail, Plus, Edit, Wallet, Users, Calendar, Activity } from 'lucide-react';
+import { Search, ArrowUpDown, Phone, Mail, Plus, Edit, Wallet, Users, Calendar, Activity, FileText } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { BarChart, ResponsiveContainer, XAxis, YAxis, Bar, Tooltip, Legend } from 'recharts';
@@ -215,6 +215,12 @@ const columns: ColumnDef<PatientData>[] = [
                     <Button variant="ghost" size="icon" asChild>
                         <Link href={`/admin/patients/${patient.id}`}>
                             <span className="sr-only">View details</span>
+                            <FileText className="w-4 h-4" />
+                        </Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/admin/patients/${patient.id}/edit`}>
+                            <span className="sr-only">Edit patient</span>
                             <Edit className="w-4 h-4" />
                         </Link>
                     </Button>
@@ -287,7 +293,7 @@ export default function Patients() {
                         </p>
                     </div>
                     <Button asChild>
-                        <Link href={route('admin.patients.create')}>
+                        <Link href="/admin/patients/create">
                             <Plus className="mr-2 w-4 h-4" />
                             Add Patient
                         </Link>

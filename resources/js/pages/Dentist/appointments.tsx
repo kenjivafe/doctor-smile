@@ -197,7 +197,7 @@ export default function Appointments() {
                   <div className="mb-1">
                     <button
                       type="button"
-                      onClick={() => router.visit(`/dentist/appointments/${appointment.id}/approve`)}
+                      onClick={() => router.visit(`/dentist/appointments/${appointment.id}/confirm`)}
                       className="flex justify-between items-center px-2 py-2 w-full text-emerald-600 rounded transition-colors bg-background dark:bg-popover hover:bg-primary hover:text-primary-foreground dark:hover:bg-emerald-600 dark:hover:text-white"
                     >
                       <div className="flex-grow text-sm font-medium text-left">Approve</div>

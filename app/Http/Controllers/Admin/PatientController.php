@@ -18,7 +18,7 @@ class PatientController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/add-patient', [
+        return Inertia::render('Admin/patient-create', [
             // Any data needed for the create form
         ]);
     }

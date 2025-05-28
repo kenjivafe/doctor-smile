@@ -45,9 +45,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'update'])->name('admin.patients.update');
         Route::delete('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('admin.patients.destroy');
 
-        Route::get('appointments', function () {
-            return Inertia::render('Admin/appointments');
-        })->name('admin.appointments');
+        Route::get('appointments', [AdminController::class, 'appointmentManagement'])->name('admin.appointments');
 
         Route::get('analytics', function () {
             return Inertia::render('Admin/analytics');

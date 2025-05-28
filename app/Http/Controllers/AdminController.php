@@ -202,6 +202,9 @@ class AdminController extends Controller
                 ];
             });
         
+        // Debug - Log the final appointment count
+        Log::info('Returning ' . $recentAppointments->count() . ' appointments to the view');
+        
         // Return data to the view
         return Inertia::render('Admin/patients', [
             'patients' => $patientsWithStats,
@@ -450,6 +453,177 @@ class AdminController extends Controller
         return Inertia::render('Admin/analytics', [
             'analyticsData' => $analyticsData,
             'userRole' => 'admin'
+        ]);
+    }
+
+    /**
+     * Display the appointment management page with data
+     *
+     * @return \Inertia\Response
+     */
+    public function appointmentManagement()
+    {
+        // Get all appointments with related data
+        $appointmentsQuery = Appointment::with(['patient.user', 'dentist', 'dentalService'])
+            ->orderBy('appointment_datetime', 'desc')
+            ->get();
+            
+        // Check if we have any real appointments
+        if ($appointmentsQuery->isEmpty()) {
+            // Debug info - Log that we're generating sample data
+            info('No real appointments found, generating sample data');
+            
+            // Generate sample appointments since we have none
+            // We'll use the same approach as in dentistManagement
+            $sampleAppointments = collect();
+            
+            // Get dentists, services and patients for sample data
+            $dentists = User::where('role', 'dentist')->take(3)->get();
+            $services = DentalService::take(5)->get();
+            $patients = Patient::with('user')->take(5)->get();
+            
+            // Debug info - Log the counts of available records
+            info("Available records for sample data: " . 
+                 $dentists->count() . " dentists, " . 
+                 $services->count() . " services, " . 
+                 $patients->count() . " patients");
+            
+            // Only generate sample data if we have the required records
+            if ($dentists->isNotEmpty() && $services->isNotEmpty() && $patients->isNotEmpty()) {
+                $statuses = ['pending', 'confirmed', 'completed', 'cancelled', 'no_show'];
+                
+                // Generate 10 sample appointments with variety
+                for ($i = 0; $i < 10; $i++) {
+                    $dentist = $dentists->random();
+                    $service = $services->random();
+                    $patient = $patients->random();
+                    $status = $statuses[array_rand($statuses)];
+                    
+                    // Calculate a random date (some in past, some today, some in future)
+                    $daysOffset = rand(-10, 20); // Between 10 days ago and 20 days in future
+                    $appointmentDate = now()->addDays($daysOffset);
+                    
+                    // For completed appointments, ensure they're in the past
+                    if ($status === 'completed') {
+                        $appointmentDate = now()->subDays(rand(1, 10));
+                    }
+                    
+                    // For today's appointments
+                    if ($daysOffset === 0) {
+                        // Only pending or confirmed for today
+                        $status = ['pending', 'confirmed'][array_rand(['pending', 'confirmed'])];
+                    }
+                    
+                    $sampleAppointments->push([
+                        'id' => $i + 1,
+                        'patient_name' => $patient->user->name,
+                        'patient_id' => $patient->id,
+                        'dentist_name' => $dentist->name,
+                        'dentist_id' => $dentist->id,
+                        'service_name' => $service->name,
+                        'service_id' => $service->id,
+                        'appointment_datetime' => $appointmentDate->format('Y-m-d H:i:s'),
+                        'status' => $status,
+                        'duration_minutes' => $service->duration ?? rand(30, 120),
+                        'cost' => $service->price ?? rand(500, 2000),
+                        'payment_status' => ($status === 'completed') ? 'paid' : 'unpaid',
+                        'notes' => $status === 'completed' ? 'Treatment completed successfully.' : null,
+                        'cancellation_reason' => ($status === 'cancelled') ? 'Patient requested cancellation.' : null,
+                    ]);
+                }
+                
+                $appointments = $sampleAppointments;
+                info('Generated ' . $sampleAppointments->count() . ' sample appointments');
+            } else {
+                // No sample data possible, return empty collection
+                $appointments = collect([]);
+                info('Could not generate sample appointments due to missing required records');
+            }
+        } else {
+            // Map real appointments to the expected format
+            $appointments = $appointmentsQuery->map(function ($appointment) {
+                // Make sure to handle null relationships safely
+                $patientName = 'Unknown';
+                $patientId = null;
+                
+                if ($appointment->patient && $appointment->patient->user) {
+                    $patientName = $appointment->patient->user->name;
+                    $patientId = $appointment->patient_id;
+                }
+                
+                $dentistName = 'Unknown';
+                $dentistId = null;
+                
+                if ($appointment->dentist) {
+                    $dentistName = $appointment->dentist->name;
+                    $dentistId = $appointment->dentist_id;
+                }
+                
+                $serviceName = 'Unknown';
+                $serviceId = null;
+                $cost = 0;
+                
+                if ($appointment->dentalService) {
+                    $serviceName = $appointment->dentalService->name;
+                    $serviceId = $appointment->dental_service_id;
+                    $cost = $appointment->dentalService->price;
+                }
+                
+                // Ensure we have an appointment status
+                $status = $appointment->status ?? 'pending';
+                
+                // Ensure we have a valid appointment datetime string
+                $appointmentDatetime = $appointment->appointment_datetime ?? now()->format('Y-m-d H:i:s');
+                
+                return [
+                    'id' => $appointment->id,
+                    'patient_name' => $patientName,
+                    'patient_id' => $patientId,
+                    'dentist_name' => $dentistName,
+                    'dentist_id' => $dentistId,
+                    'service_name' => $serviceName,
+                    'service_id' => $serviceId,
+                    'appointment_datetime' => $appointmentDatetime,
+                    'status' => $status,
+                    'duration_minutes' => $appointment->duration_minutes ?? 30,
+                    'cost' => $cost,
+                    'payment_status' => $appointment->is_paid ? 'paid' : 'unpaid',
+                    'notes' => $appointment->notes,
+                    'cancellation_reason' => $appointment->cancellation_reason,
+                ];
+            });
+        }
+
+        // Calculate appointment statistics
+        $today = Carbon::today();
+        $tomorrow = Carbon::tomorrow();
+        
+        $stats = [
+            'total' => $appointments->count(),
+            'pending' => $appointments->where('status', 'pending')->count(),
+            'confirmed' => $appointments->where('status', 'confirmed')->count(),
+            'completed' => $appointments->where('status', 'completed')->count(),
+            'cancelled' => $appointments->where('status', 'cancelled')->count(),
+            'no_show' => $appointments->where('status', 'no_show')->count(),
+            'today' => $appointments->filter(function ($appointment) use ($today, $tomorrow) {
+                $appointmentDate = Carbon::parse($appointment['appointment_datetime']);
+                return $appointmentDate >= $today && $appointmentDate < $tomorrow;
+            })->count(),
+            'upcoming' => $appointments->filter(function ($appointment) use ($tomorrow) {
+                return Carbon::parse($appointment['appointment_datetime']) >= $tomorrow;
+            })->count(),
+        ];
+
+        // For debugging - output a sample of the data structure
+        if ($appointments->count() > 0) {
+            info('Sample appointment structure: ' . json_encode($appointments->first(), JSON_PRETTY_PRINT));
+        }
+        
+        // Explicitly convert to array before passing to the view
+        // This ensures consistent data structure for the frontend
+        return Inertia::render('Admin/appointments', [
+            'appointments' => $appointments->values()->toArray(),
+            'stats' => $stats,
         ]);
     }
 
