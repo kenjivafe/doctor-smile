@@ -51,6 +51,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             return Inertia::render('Admin/analytics');
         })->name('admin.analytics');
 
+        // Dental Services management
+        Route::controller(\App\Http\Controllers\Admin\DentalServiceController::class)->group(function () {
+            Route::get('dental-services', 'index')->name('admin.dental-services');
+            Route::get('dental-services/create', 'create')->name('admin.dental-services.create');
+            Route::post('dental-services', 'store')->name('admin.dental-services.store');
+            Route::get('dental-services/{id}/edit', 'edit')->name('admin.dental-services.edit');
+            Route::put('dental-services/{id}', 'update')->name('admin.dental-services.update');
+            Route::delete('dental-services/{id}', 'destroy')->name('admin.dental-services.destroy');
+            Route::patch('dental-services/{id}/toggle-status', 'toggleStatus')->name('admin.dental-services.toggle-status');
+        });
+
         // Redirect to Laravel's built-in profile page for admin settings
         Route::get('settings', function () {
             return redirect()->route('profile.edit');
