@@ -47,9 +47,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
         Route::get('appointments', [AdminController::class, 'appointmentManagement'])->name('admin.appointments');
 
-        Route::get('analytics', function () {
-            return Inertia::render('Admin/analytics');
-        })->name('admin.analytics');
+        Route::get('analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('admin.analytics');
 
         // Dental Services management
         Route::controller(\App\Http\Controllers\Admin\DentalServiceController::class)->group(function () {

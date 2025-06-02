@@ -434,6 +434,64 @@ class AdminController extends Controller
                     'value' => $item->count,
                 ];
             });
+            
+        // NEW: Service category popularity
+        $serviceCategoryDistribution = DentalService::join('appointments', 'dental_services.id', '=', 'appointments.dental_service_id')
+            ->select('dental_services.category', DB::raw('COUNT(*) as count'))
+            ->groupBy('dental_services.category')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => ucfirst($item->category ?? 'Uncategorized'),
+                    'value' => $item->count,
+                ];
+            });
+            
+        // NEW: Most popular services
+        $popularServices = DentalService::join('appointments', 'dental_services.id', '=', 'appointments.dental_service_id')
+            ->select('dental_services.name', DB::raw('COUNT(*) as count'))
+            ->groupBy('dental_services.name')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => $item->name ?? 'Unknown',
+                    'value' => $item->count,
+                ];
+            });
+            
+        // NEW: Peak appointment hours
+        $peakHours = Appointment::select(DB::raw('HOUR(appointment_datetime) as hour'), DB::raw('COUNT(*) as count'))
+            ->where('appointment_datetime', '>=', Carbon::now()->subMonths(3))
+            ->groupBy('hour')
+            ->orderBy('hour')
+            ->get()
+            ->map(function ($item) {
+                $hour = $item->hour;
+                $formattedHour = $hour < 12 
+                    ? ($hour === 0 ? '12 AM' : $hour . ' AM') 
+                    : ($hour === 12 ? '12 PM' : ($hour - 12) . ' PM');
+                
+                return [
+                    'name' => $formattedHour,
+                    'value' => $item->count,
+                ];
+            });
+            
+        // NEW: Weekly distribution
+        $weekdayDistribution = Appointment::select(DB::raw('WEEKDAY(appointment_datetime) as weekday'), DB::raw('COUNT(*) as count'))
+            ->where('appointment_datetime', '>=', Carbon::now()->subMonths(3))
+            ->groupBy('weekday')
+            ->orderBy('weekday')
+            ->get()
+            ->map(function ($item) {
+                $weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                return [
+                    'name' => $weekdays[$item->weekday] ?? 'Unknown',
+                    'value' => $item->count,
+                ];
+            });
 
         // Prepare data for the frontend
         $analyticsData = [
@@ -447,7 +505,20 @@ class AdminController extends Controller
                 'revenue' => $revenueGrowthRate
             ],
             'dentistWorkload' => $dentistWorkload,
-            'statusDistribution' => $statusDistribution
+            'statusDistribution' => $statusDistribution,
+            'serviceCategoryDistribution' => $serviceCategoryDistribution,
+            'popularServices' => $popularServices,
+            'peakHours' => $peakHours,
+            'weekdayDistribution' => $weekdayDistribution,
+            // NEW: Summary statistics
+            'summary' => [
+                'totalDentists' => User::where('role', 'dentist')->count(),
+                'totalPatients' => Patient::count(),
+                'totalServices' => DentalService::count(),
+                'activeServices' => DentalService::where('is_active', true)->count(),
+                'avgAppointmentDuration' => round(Appointment::avg('duration_minutes') ?? 0),
+                'completionRate' => Appointment::where('status', 'completed')->count() / max(Appointment::count(), 1) * 100
+            ]
         ];
 
         return Inertia::render('Admin/analytics', [

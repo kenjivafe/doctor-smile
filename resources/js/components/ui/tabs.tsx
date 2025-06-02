@@ -1,6 +1,9 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
+// Create a proper shared context for tabs
+const TabsContext = React.createContext<string>('')
+
 interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
   defaultValue?: string
   value?: string
@@ -8,41 +11,46 @@ interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
-  ({ className, defaultValue, value, onValueChange, ...props }, ref) => {
+  ({ className, defaultValue, value, onValueChange, children, ...props }, ref) => {
+    // Use controlled or uncontrolled state
     const [selectedTab, setSelectedTab] = React.useState(value || defaultValue || '')
 
+    // Update internal state when controlled value changes
     React.useEffect(() => {
       if (value !== undefined) {
         setSelectedTab(value)
       }
     }, [value])
 
-    // Store the onValueChange callback in a ref to avoid re-renders
-    const onChangeRef = React.useRef(onValueChange)
-    React.useEffect(() => {
-      onChangeRef.current = onValueChange
-    }, [onValueChange])
-
-    // Expose the value change handler through a custom property
-    const divRef = React.useRef<HTMLDivElement>(null)
-    React.useImperativeHandle(ref, () => {
-      const div = divRef.current as HTMLDivElement & { _valueChangeCallback?: (value: string) => void }
-      if (div) {
-        div._valueChangeCallback = (newValue: string) => {
-          setSelectedTab(newValue)
-          onChangeRef.current?.(newValue)
-        }
+    // Handle tab change
+    const handleValueChange = React.useCallback((newValue: string) => {
+      if (value === undefined) {
+        setSelectedTab(newValue)
       }
-      return div as HTMLDivElement
-    })
+      onValueChange?.(newValue)
+    }, [onValueChange, value])
 
     return (
-      <div
-        ref={divRef}
-        className={cn(className)}
-        data-selected-tab={selectedTab}
-        {...props}
-      />
+      <TabsContext.Provider value={selectedTab}>
+        <div
+          ref={ref}
+          className={cn(className)}
+          {...props}
+        >
+          {React.Children.map(children, (child) => {
+            if (React.isValidElement(child)) {
+              // Pass handleValueChange to TabsTrigger
+              if (child.type === TabsTrigger) {
+                return React.cloneElement(child as React.ReactElement<TabsTriggerProps>, {
+                  onSelect: handleValueChange,
+                })
+              }
+              return child
+            }
+            return child
+          })}
+        </div>
+      </TabsContext.Provider>
     )
   }
 )
@@ -65,15 +73,15 @@ const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
 )
 TabsList.displayName = "TabsList"
 
-interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface TabsTriggerProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onSelect'> {
   value: string
+  onSelect?: (value: string) => void
 }
 
 const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
-  ({ className, value, ...props }, ref) => {
-    const tabsEl = React.useContext(React.createContext<HTMLElement | null>(null))
-    const selectedTab = tabsEl?.dataset.selectedTab
-    const isSelected = selectedTab === value
+  ({ className, value, onSelect, ...props }, ref) => {
+    const selectedValue = React.useContext(TabsContext)
+    const isSelected = selectedValue === value
 
     return (
       <button
@@ -86,19 +94,7 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
           "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
           className
         )}
-        onClick={() => {
-          const tabs = tabsEl?.closest('[data-selected-tab]')
-          if (tabs) {
-            // Define a type for the extended HTMLElement with our custom property
-            type TabsElement = HTMLElement & { _valueChangeCallback?: (value: string) => void }
-            const onValueChange = (tabs as TabsElement)._valueChangeCallback
-            if (typeof onValueChange === 'function') {
-              onValueChange(value)
-            } else {
-              tabs.setAttribute('data-selected-tab', value)
-            }
-          }
-        }}
+        onClick={() => onSelect?.(value)}
         {...props}
       />
     )
@@ -112,9 +108,8 @@ interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
   ({ className, value, ...props }, ref) => {
-    const tabsEl = React.useContext(React.createContext<HTMLElement | null>(null))
-    const selectedTab = tabsEl?.dataset.selectedTab
-    const isSelected = selectedTab === value
+    const selectedValue = React.useContext(TabsContext)
+    const isSelected = selectedValue === value
 
     if (!isSelected) return null
 
