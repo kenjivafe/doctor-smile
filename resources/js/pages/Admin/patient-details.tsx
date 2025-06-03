@@ -41,18 +41,6 @@ interface PatientDetailsProps {
     recentAppointments?: AppointmentData[];
 }
 
-// Define types for table components
-type SortingState = 'asc' | 'desc' | false;
-
-interface TableColumn {
-    toggleSorting: (state: boolean) => void;
-    getIsSorted: () => SortingState;
-}
-
-interface TableRow<T> {
-    original: T;
-    getValue: (key: string) => unknown;
-}
 
 export default function PatientDetails({ patient, recentAppointments = [] }: PatientDetailsProps) {
     const breadcrumbs: BreadcrumbItem[] = [

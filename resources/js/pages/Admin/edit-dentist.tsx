@@ -44,7 +44,7 @@ export default function EditDentist() {
         },
     ];
 
-    const { data, setData, put, processing, errors, reset } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         name: dentist.name || '',
         email: dentist.email || '',
         password: '',

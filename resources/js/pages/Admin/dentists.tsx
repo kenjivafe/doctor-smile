@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { CheckCircle, Clock, FileText, BarChart3, Search, UserRound, ArrowUpDown, Phone, Mail, Plus, Edit } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { BarChart, ResponsiveContainer, XAxis, YAxis, Bar, Tooltip, Legend } from 'recharts';
 import { DataTable } from '@/components/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -227,16 +226,10 @@ function getStatusVariant(status: string): "default" | "secondary" | "destructiv
 
 export default function Dentists() {
     // Get data from props
-    const { dentists = [], dentistStats = [], recentAppointments = [] } = usePage<DentistsPageProps>().props;
+    const { dentists = [], dentistStats = [] } = usePage<DentistsPageProps>().props;
 
-    // State for search input and active tab
+    // State for search input
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeTab, setActiveTab] = useState('list');
-
-    // Handle tab changes
-    const handleTabChange = (value: string) => {
-        setActiveTab(value);
-    };
 
     // Calculate total metrics to ensure they're accurate
     const totalCompletedAppointments = dentists.reduce(
