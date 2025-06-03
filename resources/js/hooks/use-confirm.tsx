@@ -38,19 +38,19 @@ export function useConfirm() {
     }
   };
 
-  const handleCancel = () => {
-    if (options.onCancel) {
-      options.onCancel();
-    }
-    setOpen(false);
-  };
-
   return {
     confirm,
     ConfirmationDialog: () => (
       <ConfirmDialog
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            if (options.onCancel) {
+              options.onCancel();
+            }
+            setOpen(false);
+          }
+        }}
         title={options.title}
         description={options.description}
         confirmLabel={options.confirmLabel}

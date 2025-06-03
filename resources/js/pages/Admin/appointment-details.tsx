@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -89,6 +89,7 @@ export default function AppointmentDetails() {
 
   return (
     <AppLayout>
+        <Head title="Appointment Details" />
       <div className="m-8 space-y-6">
         <div className="flex justify-between items-center">
           <div>

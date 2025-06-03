@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { PageProps } from '@inertiajs/core';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -25,7 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function AddDentist({ auth }: PageProps) {
+export default function AddDentist() {
     const { toast } = useToast();
     const { data, setData, post, processing, errors } = useForm({
         name: '',

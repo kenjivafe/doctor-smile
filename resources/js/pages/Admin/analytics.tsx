@@ -68,7 +68,7 @@ export default function Analytics() {
 
     // Use data from props or fallback to defaults
     const analyticsData = props.analyticsData || defaultAnalyticsData;
-    
+
     const data = {
         appointmentTrend: analyticsData.appointmentTrend || [],
         statusDistribution: analyticsData.statusDistribution || [],
@@ -110,17 +110,17 @@ export default function Analytics() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Analytics Dashboard" />
-            <div className="container mx-auto p-4">
-                <h1 className="text-2xl font-bold mb-6">Analytics Dashboard</h1>
+            <div className="container p-4 mx-auto">
+                <h1 className="mb-6 text-2xl font-bold">Analytics Dashboard</h1>
 
                 {/* Summary Statistics */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-3 lg:grid-cols-6">
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">
                                 Total Appointments
                             </CardTitle>
-                            <Activity className="h-4 w-4 text-muted-foreground" />
+                            <Activity className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{data.summary.totalAppointments}</div>
@@ -130,9 +130,9 @@ export default function Analytics() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Active Patients</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <Users className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{data.summary.activePatients}</div>
@@ -142,9 +142,9 @@ export default function Analytics() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">New Patients</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <Users className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{data.summary.newPatientsThisMonth}</div>
@@ -154,9 +154,9 @@ export default function Analytics() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Total Dentists</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <Users className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{data.summary.totalDentists}</div>
@@ -166,9 +166,9 @@ export default function Analytics() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <DollarSign className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">${data.summary.totalRevenue.toLocaleString()}</div>
@@ -178,9 +178,9 @@ export default function Analytics() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-                            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                            <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{data.summary.completionRate.toFixed(1)}%</div>
@@ -193,20 +193,20 @@ export default function Analytics() {
 
                 {/* Main Analytics Content */}
                 <div className="mb-6">
-                    <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground mb-4">
-                        <button 
+                    <div className="inline-flex justify-center items-center p-1 mb-4 h-10 rounded-md bg-muted text-muted-foreground">
+                        <button
                             className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all ${activeTab === 'trends' ? 'bg-background text-foreground shadow-sm' : ''}`}
                             onClick={() => setActiveTab('trends')}
                         >
                             Trends
                         </button>
-                        <button 
+                        <button
                             className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all ${activeTab === 'services' ? 'bg-background text-foreground shadow-sm' : ''}`}
                             onClick={() => setActiveTab('services')}
                         >
                             Services
                         </button>
-                        <button 
+                        <button
                             className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all ${activeTab === 'scheduling' ? 'bg-background text-foreground shadow-sm' : ''}`}
                             onClick={() => setActiveTab('scheduling')}
                         >

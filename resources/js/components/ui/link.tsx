@@ -11,7 +11,7 @@ interface LinkProps
   children: React.ReactNode
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
   size?: "default" | "sm" | "lg" | "icon"
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function Link({
