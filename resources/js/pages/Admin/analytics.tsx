@@ -26,6 +26,7 @@ interface AnalyticsData {
         totalServices: number;
         completionRate: number;
         totalRevenue?: number;
+        avgAppointmentDuration?: number;
     };
 }
 
@@ -78,11 +79,13 @@ export default function Analytics() {
         summary: {
             totalAppointments: analyticsData.summary?.totalAppointments || 0,
             activePatients: analyticsData.summary?.activePatients || 0,
+            newPatientsThisMonth: analyticsData.summary?.newPatientsThisMonth || 0,
             totalDentists: analyticsData.summary?.totalDentists || 0,
             totalServices: analyticsData.summary?.totalServices || 0,
             completionRate: analyticsData.summary?.completionRate || 0,
-            avgAppointmentDuration: analyticsData.summary?.avgAppointmentDuration || 0,
-        },
+            totalRevenue: analyticsData.summary?.totalRevenue || 0,
+            avgAppointmentDuration: analyticsData.summary?.avgAppointmentDuration || 0
+        }
     };
 
     // Calculate growth rates (can be enhanced with historical data in the future)
@@ -144,7 +147,7 @@ export default function Analytics() {
                             <Users className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{data.summary.newPatientsThisMonth || 0}</div>
+                            <div className="text-2xl font-bold">{data.summary.newPatientsThisMonth}</div>
                             <p className="text-xs text-muted-foreground">
                                 {growthRates.newPatients > 0 ? `+${growthRates.newPatients}% from last month` : 'No change'}
                             </p>
@@ -168,7 +171,7 @@ export default function Analytics() {
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">${(data.summary.totalRevenue || 0).toLocaleString()}</div>
+                            <div className="text-2xl font-bold">${data.summary.totalRevenue.toLocaleString()}</div>
                             <p className="text-xs text-muted-foreground">
                                 {growthRates.revenue > 0 ? `+${growthRates.revenue}% from last month` : 'This month'}
                             </p>

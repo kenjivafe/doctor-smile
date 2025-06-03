@@ -46,6 +46,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('admin.patients.destroy');
 
         Route::get('appointments', [AdminController::class, 'appointmentManagement'])->name('admin.appointments');
+        Route::get('appointments/{appointment}', [\App\Http\Controllers\Admin\AppointmentController::class, 'show'])->name('admin.appointments.show');
+        Route::post('appointments/{appointment}/cancel', [\App\Http\Controllers\Admin\AppointmentController::class, 'cancel'])->name('admin.appointments.cancel');
 
         Route::get('analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('admin.analytics');
 

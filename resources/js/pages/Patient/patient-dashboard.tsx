@@ -261,7 +261,7 @@ export default function PatientDashboard() {
             <div className="flex flex-col flex-1 p-8 space-y-4 h-full">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Welcome back, {patientName}!</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Welcome, {patientName}!</h2>
                         <p className="text-muted-foreground">
                             Here's your dental health overview and upcoming appointments.
                         </p>

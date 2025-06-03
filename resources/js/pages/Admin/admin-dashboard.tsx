@@ -251,7 +251,7 @@ export default function AdminDashboard() {
             <div className="flex flex-col flex-1 gap-4 p-8 h-full">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Welcome back, {adminName.replace(/^Dr\.\s*/i, '')}</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Welcome, {adminName.replace(/^Dr\.\s*/i, '')}</h2>
                         <p className="text-muted-foreground">
                             Manage your dental clinic here.
                         </p>

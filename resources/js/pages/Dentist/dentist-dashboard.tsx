@@ -84,30 +84,30 @@ const scrollbarStyles = `
         background: #27272a !important;
         border-radius: 5px;
     }
-    
+
     .dark .dentist-dashboard ::-webkit-scrollbar-thumb {
         background: #52525b !important;
         border-radius: 5px;
     }
-    
+
     .dark .dentist-dashboard ::-webkit-scrollbar-thumb:hover {
         background: #71717a !important;
     }
-    
+
     .dentist-dashboard ::-webkit-scrollbar-track {
         background: #f1f1f1 !important;
         border-radius: 5px;
     }
-    
+
     .dentist-dashboard ::-webkit-scrollbar-thumb {
         background: #c1c1c1 !important;
         border-radius: 5px;
     }
-    
+
     .dentist-dashboard ::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8 !important;
     }
-    
+
     .dentist-dashboard ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -179,7 +179,7 @@ export default function DentistDashboard() {
 
         // Helper function to convert time string to minutes from midnight
         const timeToMinutes = (hour: number, minute: number) => hour * 60 + minute;
-        
+
         // Convert slot datetime to minutes for easier comparison
         const slotMinutesMap = slots.map((slot, index) => {
             const [hour, minute] = slot.datetime.split(':').map(part => parseInt(part));
@@ -194,15 +194,15 @@ export default function DentistDashboard() {
             // Extract hour and minute directly from the ISO datetime string to avoid timezone issues
             const timeMatch = appointment.appointment_datetime.match(/T(\d{2}):(\d{2})/);
             if (!timeMatch || !timeMatch[1] || !timeMatch[2]) return;
-            
+
             const hour = parseInt(timeMatch[1]);
             const minute = parseInt(timeMatch[2]);
             const appointmentStartMinutes = timeToMinutes(hour, minute);
-            
+
             // Default to 30 minutes if duration is not specified
             const duration = appointment.duration_minutes || 30;
             const appointmentEndMinutes = appointmentStartMinutes + duration;
-            
+
             // Find the primary slot for this appointment
             const mainSlotIndex = slots.findIndex(slot => {
                 const slotTime = slot.datetime.split(':');
@@ -220,19 +220,19 @@ export default function DentistDashboard() {
                 slots[mainSlotIndex].status = 'booked';
                 slots[mainSlotIndex].patient = appointment.patient?.user?.name || 'Patient';
                 slots[mainSlotIndex].service = appointment.dentalService?.name || 'Service';
-                
+
                 // Also mark any overlapping slots as unavailable
                 slotMinutesMap.forEach(slotInfo => {
                     if (slotInfo.index !== mainSlotIndex) {
                         const slotMinutes = slotInfo.minutes;
                         const slotEndMinutes = slotMinutes + 30; // Each slot is 30 minutes
-                        
+
                         // Check if this slot overlaps with the appointment
-                        const overlapsWithAppointment = 
+                        const overlapsWithAppointment =
                             (slotMinutes >= appointmentStartMinutes && slotMinutes < appointmentEndMinutes) || // Slot starts during appointment
                             (slotEndMinutes > appointmentStartMinutes && slotEndMinutes <= appointmentEndMinutes) || // Slot ends during appointment
                             (slotMinutes <= appointmentStartMinutes && slotEndMinutes >= appointmentEndMinutes); // Slot contains appointment
-                            
+
                         if (overlapsWithAppointment && slots[slotInfo.index].status === 'available') {
                             slots[slotInfo.index].status = 'unavailable';
                         }
@@ -306,7 +306,7 @@ export default function DentistDashboard() {
             <div className="flex flex-col flex-1 p-8 space-y-4 h-full dentist-dashboard">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Welcome back, Dr. {safeDentistName}</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Welcome, Dr. {safeDentistName}</h2>
                         <p className="text-muted-foreground">
                             Here's an overview of your appointments and schedule
                         </p>
@@ -476,11 +476,11 @@ export default function DentistDashboard() {
                             <div className="grid overflow-y-auto grid-cols-3 gap-2 pr-1 max-h-128">
                                 {/* Render dynamic time slots */}
                                 {todayTimeSlots.map((slot, index) => (
-                                    <div key={index} className="flex flex-col justify-between items-center p-3 h-28 bg-card rounded-md border shadow-sm dark:border-border">
+                                    <div key={index} className="flex flex-col justify-between items-center p-3 h-28 rounded-md border shadow-sm bg-card dark:border-border">
                                         <div className="flex justify-center items-center w-full">
                                             <div className={`flex justify-center items-center mr-2 w-6 h-6 rounded-full ${
-                                                slot.status === 'lunch' ? 'bg-muted/20 dark:bg-muted/40' : 
-                                                slot.status === 'unavailable' ? 'bg-muted-foreground/10 dark:bg-muted-foreground/20' : 
+                                                slot.status === 'lunch' ? 'bg-muted/20 dark:bg-muted/40' :
+                                                slot.status === 'unavailable' ? 'bg-muted-foreground/10 dark:bg-muted-foreground/20' :
                                                 'bg-primary/10 dark:bg-primary/20'}`}>
                                                 {slot.status === 'booked' ? (
                                                     <UserRound className="w-3 h-3 text-primary dark:text-primary" />
@@ -511,11 +511,11 @@ export default function DentistDashboard() {
                                         {/* Status badge */}
                                         <div className="w-full text-center">
                                             <Badge
-                                                variant={slot.status === 'available' ? "default" : 
-                                                        slot.status === 'booked' ? "destructive" : 
+                                                variant={slot.status === 'available' ? "default" :
+                                                        slot.status === 'booked' ? "destructive" :
                                                         slot.status === 'unavailable' ? "secondary" : "outline"}
                                                 className={`${slot.status === 'available' ? 'bg-primary/10 hover:bg-primary/15 text-primary hover:text-primary dark:bg-primary/20 dark:hover:bg-primary/25 dark:text-primary-foreground dark:hover:text-primary-foreground' :
-                                                          slot.status === 'booked' ? 'bg-destructive/10 hover:bg-destructive/15 text-destructive hover:text-destructive dark:bg-destructive/20 dark:hover:bg-destructive/25 dark:text-destructive-foreground dark:hover:text-destructive-foreground' : 
+                                                          slot.status === 'booked' ? 'bg-destructive/10 hover:bg-destructive/15 text-destructive hover:text-destructive dark:bg-destructive/20 dark:hover:bg-destructive/25 dark:text-destructive-foreground dark:hover:text-destructive-foreground' :
                                                           slot.status === 'unavailable' ? 'bg-muted hover:bg-muted text-muted-foreground hover:text-muted-foreground dark:bg-muted/50 dark:hover:bg-muted/60 dark:text-muted-foreground dark:hover:text-muted-foreground' : ''}`}
                                             >
                                                 {slot.status === 'available' ? "Available" :
