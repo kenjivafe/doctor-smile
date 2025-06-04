@@ -177,7 +177,7 @@ export default function PatientDetails({ patient, recentAppointments = [] }: Pat
                             </Link>
                         </Button>
                         <Button asChild>
-                            <Link href={`/admin/patients/${patient.id}/edit`}>
+                            <Link href={route('admin.edit-patient', patient.id)}>
                                 <Edit className="mr-2 w-4 h-4" />
                                 Edit Patient
                             </Link>
