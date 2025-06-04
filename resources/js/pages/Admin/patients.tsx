@@ -297,7 +297,7 @@ export default function Patients() {
                         </p>
                     </div>
                     <Button asChild>
-                        <Link href="/admin/patients/create">
+                        <Link href={route('admin.patient-create')}>
                             <Plus className="mr-2 w-4 h-4" />
                             Add Patient
                         </Link>
