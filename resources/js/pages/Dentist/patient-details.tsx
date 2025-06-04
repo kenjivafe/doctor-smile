@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, Phone, Mail, User, Clock, DollarSign, FileText } from 'lucide-react';
+import { Calendar, Phone, Mail, User, Clock, FileText } from 'lucide-react';
 import { Link, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 
@@ -299,7 +299,7 @@ export default function PatientDetails({ patient, appointments = [] }: PatientDe
 
                 <div className="space-y-2">
                   <div className="flex items-start">
-                    <DollarSign className="mt-1 mr-2 w-4 h-4 text-muted-foreground" />
+                    <span className="mt-0.5 mr-2 text-muted-foreground">₱</span>
                     <div>
                       <span className="font-medium">Balance:</span>{' '}
                       <div className="flex gap-2 items-center">

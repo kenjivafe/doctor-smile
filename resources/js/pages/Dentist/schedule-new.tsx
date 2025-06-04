@@ -4,7 +4,7 @@ import { useState, FormEvent, ChangeEvent } from 'react';
 import { router, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Trash2, Plus, Check, X } from 'lucide-react';
+import { Clock, Trash2, Plus, X } from 'lucide-react';
 
 interface WorkingHour {
   id: number;

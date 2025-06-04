@@ -44,13 +44,6 @@ interface PageProps {
     appointment: Appointment;
 }
 
-const statusVariantMap: Record<string, 'warning' | 'default' | 'destructive' | 'outline' | 'secondary'> = {
-  pending: 'warning',
-  confirmed: 'default',
-  completed: 'default',
-  cancelled: 'destructive',
-  suggested: 'outline'
-};
 
 export default function AppointmentDetails() {
   const { appointment } = usePage<PageProps>().props;

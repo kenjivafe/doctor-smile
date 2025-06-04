@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
-use App\Models\DentalService;
 use App\Models\Dentist;
+use App\Models\DentalService;
 use App\Models\DentistAvailability;
 use App\Models\DentistBlockedDate;
 use App\Models\DentistWorkingHour;
@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class AppointmentController extends Controller
@@ -157,7 +158,18 @@ class AppointmentController extends Controller
 
         $validator = Validator::make($request->all(), [
             'dental_service_id' => 'required|exists:dental_services,id',
-            'dentist_id' => 'required|exists:dentists,id',
+            'dentist_id' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $exists = \App\Models\User::where('id', $value)
+                        ->where('role', 'dentist')
+                        ->exists();
+                    
+                    if (!$exists) {
+                        $fail('The selected dentist is invalid.');
+                    }
+                },
+            ],
             'appointment_date' => 'required|date|after:yesterday',
             'appointment_time' => 'required|date_format:H:i',
             'notes' => 'nullable|string|max:1000',
@@ -206,12 +218,15 @@ class AppointmentController extends Controller
 
             Log::info('Patient found', ['patient_id' => $patient->id]);
 
-            // Verify the dentist exists
-            $dentist = Dentist::find($request->dentist_id);
+            // Verify the dentist exists and is a dentist
+            $dentist = User::where('id', $request->dentist_id)
+                ->where('role', 'dentist')
+                ->first();
+                
             if (!$dentist) {
-                Log::error('Dentist not found', ['dentist_id' => $request->dentist_id]);
+                Log::error('Dentist not found or is not a dentist', ['dentist_id' => $request->dentist_id]);
                 return back()->withErrors([
-                    'dentist_id' => 'The selected dentist could not be found.'
+                    'dentist_id' => 'The selected dentist could not be found or is not a valid dentist.'
                 ])->withInput();
             }
 
