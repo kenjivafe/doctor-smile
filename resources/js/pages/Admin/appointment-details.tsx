@@ -19,6 +19,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { type BreadcrumbItem } from '@/types';
 
 interface Appointment {
     id: number;
@@ -53,6 +54,20 @@ const statusVariantMap: Record<string, 'warning' | 'default' | 'destructive' | '
 
 export default function AppointmentDetails() {
   const { appointment } = usePage<PageProps>().props;
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: 'Dashboard',
+      href: '/admin/dashboard',
+    },
+    {
+      title: 'Appointments',
+      href: '/admin/appointments',
+    },
+    {
+      title: `Appointment #${appointment.id}`,
+      href: `/admin/appointments/${appointment.id}`,
+    },
+  ];
   const [cancellationReason, setCancellationReason] = React.useState('');
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -87,7 +102,7 @@ export default function AppointmentDetails() {
   };
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Appointment Details" />
       <div className="m-8 space-y-6">
         <div className="flex justify-between items-center">
@@ -112,7 +127,10 @@ export default function AppointmentDetails() {
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                   <span>Appointment Information</span>
-                  <Badge variant={statusVariantMap[appointment.status as keyof typeof statusVariantMap] || 'outline'}>
+                  <Badge 
+                    variant={appointment.status === 'completed' ? 'secondary' : 'outline'} 
+                    className={`${appointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : ''} ${appointment.status === 'confirmed' ? 'bg-blue-100 text-blue-800 border-blue-200' : ''} ${appointment.status === 'completed' ? 'bg-green-100 text-green-800 border-green-200' : ''} ${appointment.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' : ''} text-xs`}
+                  >
                     {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                   </Badge>
                 </CardTitle>
@@ -137,7 +155,9 @@ export default function AppointmentDetails() {
                     <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="text-sm text-muted-foreground">Patient</p>
-                      <p>{appointment.patient_name}</p>
+                      <Link href={route('admin.patient-details', { id: appointment.patient_id })} className="text-primary hover:underline">
+                        {appointment.patient_name}
+                      </Link>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
@@ -155,7 +175,7 @@ export default function AppointmentDetails() {
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <span className="text-muted-foreground font-medium">₱</span>
+                    <span className="font-medium text-muted-foreground">₱</span>
                     <div>
                       <p className="text-sm text-muted-foreground">Cost</p>
                       <p>₱{Number(appointment.cost).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
@@ -200,7 +220,7 @@ export default function AppointmentDetails() {
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
-                          className="justify-start w-full text-destructive hover:bg-destructive/10"
+                          className="justify-start w-full text-destructive hover:bg-destructive"
                         >
                           <XCircle className="mr-2 w-4 h-4" />
                           Cancel Appointment
@@ -248,15 +268,31 @@ export default function AppointmentDetails() {
                   </>
                 )}
                 {appointment.status === 'confirmed' && (
-                  <Button variant="outline" className="justify-start w-full text-green-600" asChild>
-                    <Link href={`/admin/appointments/${appointment.id}/complete`}>
-                      <CheckCircle className="mr-2 w-4 h-4" />
-                      Mark as Completed
-                    </Link>
+                  <Button
+                    variant="outline"
+                    className="justify-start w-full text-green-600"
+                    onClick={() => {
+                      router.put(
+                        route('admin.appointments.update', { appointment: appointment.id }), 
+                        { status: 'completed' },
+                        {
+                          onSuccess: () => {
+                            // Refresh the page to show updated status
+                            router.visit(window.location.pathname, { only: ['appointment'] });
+                          },
+                          onError: (errors) => {
+                            console.error('Error updating appointment:', errors);
+                          }
+                        }
+                      );
+                    }}
+                  >
+                    <CheckCircle className="mr-2 w-4 h-4" />
+                    Mark as Completed
                   </Button>
                 )}
                 <Button variant="outline" className="justify-start w-full" asChild>
-                  <Link href={`/admin/patients/${appointment.patient_id}`}>
+                  <Link href={route('admin.patient-details', { id: appointment.patient_id })}>
                     <User className="mr-2 w-4 h-4" />
                     View Patient
                   </Link>

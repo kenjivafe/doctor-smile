@@ -139,33 +139,39 @@ class AppointmentController extends Controller
     public function update(Request $request, Appointment $appointment)
     {
         $validated = $request->validate([
-            'dentist_id' => 'required|exists:dentists,id',
-            'service_id' => 'required|exists:dental_services,id',
-            'appointment_datetime' => 'required|date',
-            'status' => 'required|in:pending,confirmed,completed,cancelled',
-            'payment_status' => 'required|in:paid,unpaid',
+            'status' => 'sometimes|required|in:pending,confirmed,completed,cancelled',
+            'dentist_id' => 'sometimes|required|exists:dentists,id',
+            'service_id' => 'sometimes|required|exists:dental_services,id',
+            'appointment_datetime' => 'sometimes|required|date',
+            'payment_status' => 'sometimes|required|in:paid,unpaid',
             'notes' => 'nullable|string',
             'cancellation_reason' => 'required_if:status,cancelled|nullable|string',
         ]);
 
         // If status is being changed to cancelled, ensure cancellation reason is provided
-        if ($validated['status'] === 'cancelled' && empty($validated['cancellation_reason'])) {
+        if (isset($validated['status']) && $validated['status'] === 'cancelled' && empty($validated['cancellation_reason'])) {
             return back()->withErrors([
                 'cancellation_reason' => 'Cancellation reason is required when cancelling an appointment.'
             ]);
         }
 
-        // If status is not cancelled, remove any existing cancellation reason
-        if ($validated['status'] !== 'cancelled') {
+        // If status is being changed to something other than cancelled, remove any existing cancellation reason
+        if (isset($validated['status']) && $validated['status'] !== 'cancelled') {
             $validated['cancellation_reason'] = null;
         }
 
-        // Get service to update duration and cost
-        $service = DentalService::findOrFail($validated['service_id']);
-        $validated['duration_minutes'] = $service->duration;
-        $validated['cost'] = $service->cost;
+        // Only update service-related fields if service_id is being updated
+        if (isset($validated['service_id'])) {
+            $service = DentalService::findOrFail($validated['service_id']);
+            $validated['duration_minutes'] = $service->duration;
+            $validated['cost'] = $service->cost;
+        }
 
         $appointment->update($validated);
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Appointment updated successfully.']);
+        }
 
         return redirect()->route('admin.appointments.show', $appointment->id)
             ->with('success', 'Appointment updated successfully.');
