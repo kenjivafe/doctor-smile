@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Head, usePage, Link } from '@inertiajs/react';
+import { Head, usePage, Link, router } from '@inertiajs/react';
 import { PageProps } from '@inertiajs/core';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -212,17 +212,21 @@ const columns: ColumnDef<PatientData>[] = [
             const patient = row.original;
             return (
                 <div className="flex justify-end space-x-2">
-                    <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/admin/patients/${patient.id}`}>
-                            <span className="sr-only">View details</span>
-                            <FileText className="w-4 h-4" />
-                        </Link>
+                    <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => router.visit(`/admin/patient-details/${patient.id}`)}
+                    >
+                        <span className="sr-only">View details</span>
+                        <FileText className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/admin/patients/${patient.id}/edit`}>
-                            <span className="sr-only">Edit patient</span>
-                            <Edit className="w-4 h-4" />
-                        </Link>
+                    <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => router.visit(`/admin/edit-patient/${patient.id}`)}
+                    >
+                        <span className="sr-only">Edit patient</span>
+                        <Edit className="w-4 h-4" />
                     </Button>
                 </div>
             );

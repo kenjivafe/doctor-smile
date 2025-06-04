@@ -38,10 +38,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
         // Patient management
         Route::get('patients', [AdminController::class, 'patientManagement'])->name('admin.patients');
-        Route::get('patients/create', [\App\Http\Controllers\Admin\PatientController::class, 'create'])->name('admin.patients.create');
+        Route::get('patient-create', [\App\Http\Controllers\Admin\PatientController::class, 'create'])->name('admin.patient-create');
         Route::post('patients', [\App\Http\Controllers\Admin\PatientController::class, 'store'])->name('admin.patients.store');
-        Route::get('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'show'])->name('admin.patients.show');
-        Route::get('patients/{id}/edit', [\App\Http\Controllers\Admin\PatientController::class, 'edit'])->name('admin.patients.edit');
+        Route::get('patient-details/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'show'])->name('admin.patient-details');
+        Route::get('edit-patient/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'edit'])->name('admin.edit-patient');
         Route::put('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'update'])->name('admin.patients.update');
         Route::delete('patients/{id}', [\App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('admin.patients.destroy');
 

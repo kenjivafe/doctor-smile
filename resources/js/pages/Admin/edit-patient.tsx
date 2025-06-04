@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -62,19 +61,11 @@ export default function EditPatient({ patient }: EditPatientProps) {
             <Head title="Edit Patient" />
 
             <div className="flex flex-col flex-1 gap-4 p-8 h-full">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Edit Patient</h2>
-                        <p className="text-muted-foreground">
-                            Update patient information in the system.
-                        </p>
-                    </div>
-                    <Button variant="outline" asChild>
-                        <Link href={`/admin/patients/${patient.id}`}>
-                            <ArrowLeft className="mr-2 w-4 h-4" />
-                            Back to Patient Details
-                        </Link>
-                    </Button>
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-bold tracking-tight">Edit Patient</h2>
+                    <p className="text-muted-foreground">
+                        Update patient information in the system.
+                    </p>
                 </div>
 
                 <Card className="max-w-3xl">
@@ -234,8 +225,8 @@ export default function EditPatient({ patient }: EditPatientProps) {
                                     variant="outline" 
                                     asChild
                                 >
-                                    <Link href={`/admin/patients/${patient.id}`}>
-                                        Cancel
+                                    <Link href={route('admin.patient-details', patient.id)}>
+                                        Back to Patient Details
                                     </Link>
                                 </Button>
                                 <Button 
