@@ -110,22 +110,23 @@ export default function DentalServices({ services = [] }: DentalServicesPageProp
   const handleDeleteService = () => {
     if (!selectedService) return;
     
+    if (!confirm('WARNING: This will permanently delete this service and ALL associated appointments. This action cannot be undone.\n\nAre you sure you want to proceed?')) {
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Create a form data object
-    const formData = new FormData();
-    formData.append('_method', 'DELETE');
-    
-    // Use post with _method instead of delete directly
-    router.post(`/admin/dental-services/${selectedService.id}`, formData, {
-      forceFormData: true,
+    // Use router.delete with the correct URL format
+    router.delete(`/admin/dental-services/${selectedService.id}`, {
       onSuccess: () => {
         setDeleteDialogOpen(false);
         setSelectedService(null);
-        // Refresh the page to reset any stuck state
-        window.location.reload();
+        // Show success message
+        alert('Service and all associated appointments have been successfully deleted.');
       },
-      onError: () => {
+      onError: (errors) => {
+        console.error('Error deleting service:', errors);
+        alert('An error occurred while deleting the service. Please try again.');
         setIsLoading(false);
       }
     });
@@ -320,7 +321,10 @@ export default function DentalServices({ services = [] }: DentalServicesPageProp
                                 <div className="mt-1">
                                   <button
                                     type="button"
-                                    onClick={() => openDeleteDialog(service)}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      openDeleteDialog(service);
+                                    }}
                                     className="flex justify-between items-center px-2 py-2 w-full rounded transition-colors bg-background dark:bg-popover text-destructive hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:hover:text-white"
                                   >
                                     <div className="flex-grow text-sm font-medium text-left">Delete service</div>

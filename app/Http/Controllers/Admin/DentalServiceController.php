@@ -100,22 +100,26 @@ class DentalServiceController extends Controller
 
     /**
      * Remove the specified dental service from storage.
+     * This will also delete all associated appointments.
      */
     public function destroy($id)
     {
         $service = DentalService::findOrFail($id);
         
-        // Check if service is used in appointments
-        if ($service->appointments()->count() > 0) {
-            return redirect()->route('admin.dental-services')
-                ->with('error', 'Cannot delete service as it is associated with appointments');
-        }
+        // Delete all associated appointments
+        $service->appointments()->delete();
         
-
-        
+        // Now delete the service
         $service->delete();
         
-        return redirect()->route('admin.dental-services')->with('success', 'Dental service deleted successfully');
+        if (request()->wantsJson()) {
+            return response()->json([
+                'message' => 'Dental service and all associated appointments have been deleted successfully',
+            ]);
+        }
+        
+        return redirect()->route('admin.dental-services')
+            ->with('success', 'Dental service and all associated appointments have been deleted successfully');
     }
     
     /**

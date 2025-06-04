@@ -211,7 +211,9 @@ const columns: ColumnDef<DentistData>[] = [
                     </Avatar>
                     <div>
                         <p className="font-medium">{dentist.name}</p>
-                        <p className="text-sm text-muted-foreground">General Dentistry</p>
+                        <p className="text-sm text-muted-foreground">
+                            {dentist.specialty || 'General Dentistry'}
+                        </p>
                     </div>
                 </div>
             );
@@ -222,16 +224,17 @@ const columns: ColumnDef<DentistData>[] = [
         header: 'Contact',
         cell: ({ row }: { row: TableRow<DentistData> }) => {
             const dentist = row.original;
+            const phone = dentist.phone || dentist.dentist?.phone;
             return (
                 <div className="space-y-1">
                     <div className="flex items-center text-sm">
                         <Mail className="mr-2 w-3.5 h-3.5 text-muted-foreground" />
                         <span>{dentist.email}</span>
                     </div>
-                    {dentist.phone && (
+                    {phone && (
                         <div className="flex items-center text-sm">
                             <Phone className="mr-2 w-3.5 h-3.5 text-muted-foreground" />
-                            <span>{dentist.phone}</span>
+                            <span>{phone}</span>
                         </div>
                     )}
                 </div>
@@ -242,8 +245,8 @@ const columns: ColumnDef<DentistData>[] = [
         accessorKey: 'totalAppointments',
         header: () => <div className="text-right">Appointments</div>,
         cell: ({ row }: { row: TableRow<DentistData> }) => {
-            const totalAppointments = row.getValue('totalAppointments') as number;
-            const completed = row.original.completedAppointments;
+            const totalAppointments = Number(row.getValue('totalAppointments')) || 0;
+            const completed = row.original.completedAppointments || 0;
             const completionRate = totalAppointments > 0
                 ? Math.round((completed / totalAppointments) * 100)
                 : 0;
@@ -251,7 +254,7 @@ const columns: ColumnDef<DentistData>[] = [
             return (
                 <div className="space-y-1 text-right">
                     <p className="font-medium">{totalAppointments}</p>
-                    <p className="text-xs text-muted-foreground">{completionRate}% completed</p>
+                    <p className="text-xs text-muted-foreground">{completionRate}% completion rate</p>
                 </div>
             );
         },
@@ -260,11 +263,7 @@ const columns: ColumnDef<DentistData>[] = [
         accessorKey: 'revenue',
         header: () => <div className="text-right">Revenue</div>,
         cell: ({ row }: { row: TableRow<DentistData> }) => {
-            const revenueValue = row.getValue('revenue');
-            const revenue = typeof revenueValue === 'number'
-                ? revenueValue
-                : parseFloat(String(revenueValue) || '0');
-
+            const revenue = Number(row.getValue('revenue')) || 0;
             const formatted = new Intl.NumberFormat('en-PH', {
                 style: 'currency',
                 currency: 'PHP',
@@ -279,8 +278,7 @@ const columns: ColumnDef<DentistData>[] = [
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }: { row: TableRow<DentistData> }) => {
-            const statusValue = row.getValue('status');
-            const status = typeof statusValue === 'string' ? statusValue : 'unknown';
+            const status = String(row.getValue('status')) || 'inactive';
             return (
                 <div className="flex justify-center">
                     <Badge variant={getStatusVariant(status)}>
@@ -471,30 +469,11 @@ export default function Dentists() {
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    {/* Debug data in a way that doesn't cause TypeScript errors */}
-                                    <div className="hidden">{JSON.stringify(filteredDentists)}</div>
-                                    {Array.isArray(filteredDentists) && filteredDentists.length > 0 ? (
-                                        <DataTable
-                                            columns={columns}
-                                            data={filteredDentists.map(dentist => ({
-                                                id: dentist.id,
-                                                name: dentist.name || 'Unknown',
-                                                email: dentist.email || 'No email',
-                                                phone: dentist.phone || 'No phone',
-                                                specialty: 'General Dentistry', // Default value as this field doesn't exist in DB
-                                                totalAppointments: dentist.totalAppointments || 0,
-                                                completedAppointments: dentist.completedAppointments || 0,
-                                                cancelledAppointments: dentist.cancelledAppointments || 0,
-                                                revenue: dentist.revenue || 0,
-                                                rating: dentist.rating || 0,
-                                                status: dentist.status || 'active',
-                                            }))}
-                                        />
-                                    ) : (
-                                        <div className="flex justify-center items-center py-16 text-muted-foreground">
-                                            {searchQuery ? 'No dentists match your search' : 'No dentists found'}
-                                        </div>
-                                    )}
+                                    <DataTable
+                                        columns={columns}
+                                        data={filteredDentists}
+                                        emptyMessage="No dentists found."
+                                    />
                                 </CardContent>
                             </Card>
                         </div>
@@ -503,106 +482,39 @@ export default function Dentists() {
                     {/* Performance Tab */}
                     {activeTab === 'performance' && (
                         <div className="pt-4">
-                            <div className="grid gap-4 md:grid-cols-2">
-                            <Card className="col-span-2">
+                            <Card>
                                 <CardHeader>
-                                    <CardTitle>Revenue by Dentist</CardTitle>
+                                    <CardTitle>Performance Overview</CardTitle>
                                     <CardDescription>
-                                        Top performing dentists by revenue generated
+                                        Track your dentists' performance metrics and revenue.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="h-80">
+                                    <div className="h-[400px]">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart
                                                 data={sortedDentistStats}
-                                                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                                                margin={{
+                                                    top: 20,
+                                                    right: 30,
+                                                    left: 20,
+                                                    bottom: 5,
+                                                }}
                                             >
-                                                <XAxis
-                                                    dataKey="name"
-                                                    angle={-45}
-                                                    textAnchor="end"
-                                                    height={60}
-                                                    tickMargin={20}
-                                                />
+                                                <XAxis dataKey="name" />
                                                 <YAxis />
-                                                <Tooltip formatter={formatRevenue} />
+                                                <Tooltip 
+                                                    formatter={(value) => 
+                                                        typeof value === 'number' 
+                                                            ? formatRevenue(Number(value)) 
+                                                            : value
+                                                    } 
+                                                />
                                                 <Legend />
-                                                <Bar
-                                                    dataKey="revenue"
-                                                    fill="#4f46e5"
-                                                    name="Revenue (₱)"
-                                                    radius={[4, 4, 0, 0]}
-                                                />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Completed Appointments</CardTitle>
-                                    <CardDescription>
-                                        Number of successfully completed appointments
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="h-80">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart
-                                                data={sortedDentistStats}
-                                                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                                            >
-                                                <XAxis
-                                                    dataKey="name"
-                                                    angle={-45}
-                                                    textAnchor="end"
-                                                    height={60}
-                                                    tickMargin={20}
-                                                />
-                                                <YAxis />
-                                                <Tooltip />
-                                                <Bar
-                                                    dataKey="completedAppointments"
-                                                    fill="#22c55e"
-                                                    name="Completed"
-                                                    radius={[4, 4, 0, 0]}
-                                                />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Cancelled Appointments</CardTitle>
-                                    <CardDescription>
-                                        Number of cancelled appointments
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="h-80">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart
-                                                data={sortedDentistStats}
-                                                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                                            >
-                                                <XAxis
-                                                    dataKey="name"
-                                                    angle={-45}
-                                                    textAnchor="end"
-                                                    height={60}
-                                                    tickMargin={20}
-                                                />
-                                                <YAxis />
-                                                <Tooltip />
-                                                <Bar
-                                                    dataKey="cancelledAppointments"
-                                                    fill="#ef4444"
-                                                    name="Cancelled"
-                                                    radius={[4, 4, 0, 0]}
+                                                <Bar 
+                                                    dataKey="revenue" 
+                                                    name="Revenue (₱)" 
+                                                    fill="#8884d8" 
                                                 />
                                             </BarChart>
                                         </ResponsiveContainer>
@@ -610,7 +522,6 @@ export default function Dentists() {
                                 </CardContent>
                             </Card>
                         </div>
-                    </div>
                     )}
                 </div>
             </div>
