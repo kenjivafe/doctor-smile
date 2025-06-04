@@ -110,11 +110,11 @@ export default function Analytics() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Analytics Dashboard" />
-            <div className="container p-4 mx-auto">
+            <div className="container p-8">
                 <h1 className="mb-6 text-2xl font-bold">Analytics Dashboard</h1>
 
                 {/* Summary Statistics */}
-                <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-3 lg:grid-cols-6">
+                <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                             <CardTitle className="text-sm font-medium">

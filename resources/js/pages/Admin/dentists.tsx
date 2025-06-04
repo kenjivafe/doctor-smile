@@ -230,6 +230,9 @@ export default function Dentists() {
 
     // State for search input
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // State for active tab
+    const [activeTab, setActiveTab] = useState<'list' | 'performance'>('list');
 
     // Calculate total metrics to ensure they're accurate
     const totalCompletedAppointments = dentists.reduce(
