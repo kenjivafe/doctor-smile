@@ -225,7 +225,7 @@ export default function EditPatient({ patient }: EditPatientProps) {
                                     variant="outline" 
                                     asChild
                                 >
-                                    <Link href={route('admin.patient-details', patient.id)}>
+                                    <Link href={route('admin.patient-details', { id: patient.id })}>
                                         Back to Patient Details
                                     </Link>
                                 </Button>

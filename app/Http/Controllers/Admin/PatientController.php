@@ -191,7 +191,7 @@ class PatientController extends Controller
                 'balance' => $request->balance ?? $user->patient->balance ?? 0,
             ]);
 
-            return redirect()->route('admin.patients.show', $id)->with('success', 'Patient updated successfully.');
+            return redirect()->route('admin.patient-details', $id)->with('success', 'Patient updated successfully.');
         });
     }
 
