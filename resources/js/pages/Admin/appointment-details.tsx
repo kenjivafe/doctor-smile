@@ -14,7 +14,6 @@ import {
   User,
   Stethoscope,
   FileText,
-  DollarSign,
   AlertCircle,
   XCircle,
   Calendar
@@ -156,10 +155,10 @@ export default function AppointmentDetails() {
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <span className="text-muted-foreground font-medium">₱</span>
                     <div>
                       <p className="text-sm text-muted-foreground">Cost</p>
-                      <p>${Number(appointment.cost).toFixed(2)}</p>
+                      <p>₱{Number(appointment.cost).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 </div>
