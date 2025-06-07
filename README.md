@@ -111,14 +111,14 @@ npm run dev
 The database seeder creates the following test accounts:
 
 ### Admin User
-- Email: admin@doctorsmile.com
+- Email: admin@doctor-smile.com
 - Password: password
 
 ### Dentist Users
-- Dr. John Smith (john.smith@doctorsmile.com) - Password: password
-- Dr. Sarah Johnson (sarah.johnson@doctorsmile.com) - Password: password
-- Dr. Michael Chen (michael.chen@doctorsmile.com) - Password: password
-- Dr. Emily Rodriguez (emily.rodriguez@doctorsmile.com) - Password: password
+- Dr. John Smith (john.smith@doctor-smile.com) - Password: password
+- Dr. Sarah Johnson (sarah.johnson@doctor-smile.com) - Password: password
+- Dr. Michael Chen (michael.chen@doctor-smile.com) - Password: password
+- Dr. Emily Rodriguez (emily.rodriguez@doctor-smile.com) - Password: password
 
 ## Features & Roadmap
 
